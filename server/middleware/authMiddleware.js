@@ -7,20 +7,24 @@ export const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'goaride_jwt_secret_key_2026_super_secure');
+      const secret = process.env.JWT_SECRET || 'goaride_jwt_secret_key_2026_super_secure';
+      
+      const decoded = jwt.verify(token, secret);
       req.user = await User.findById(decoded.id).select('-password');
+      
       if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized, user not found' });
+        return res.status(401).json({ message: 'Not authorized, user account no longer exists' });
       }
+      
       return next();
     } catch (error) {
-      console.error(error);
-      return res.status(401).json({ message: 'Not authorized, token failed' });
+      console.error(`Auth Middleware Error: ${error.message}`);
+      return res.status(401).json({ message: 'Not authorized, token verification failed or session expired' });
     }
   }
 
   if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token provided' });
+    return res.status(401).json({ message: 'Not authorized, no authentication token provided' });
   }
 };
 
@@ -28,6 +32,6 @@ export const admin = (req, res, next) => {
   if (req.user && req.user.role === 'ADMIN') {
     next();
   } else {
-    res.status(403).json({ message: 'Not authorized as an admin' });
+    res.status(403).json({ message: 'Access denied. Administrative privileges required.' });
   }
 };

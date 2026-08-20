@@ -2,13 +2,7 @@ import User from '../models/User.js';
 import Booking from '../models/Booking.js';
 import Favorite from '../models/Favorite.js';
 import Review from '../models/Review.js';
-import jwt from 'jsonwebtoken';
-
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'goaride_jwt_secret_key_2026_super_secure', {
-    expiresIn: '30d',
-  });
-};
+import generateToken from '../utils/generateToken.js';
 
 // @desc Get all users (Admin only)
 // @route GET /api/users
@@ -52,7 +46,7 @@ export const updateUserProfile = async (req, res) => {
     }
 
     user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    user.email = req.body.email ? req.body.email.toLowerCase().trim() : user.email;
     user.phone = req.body.phone || user.phone;
     if (req.body.profileImage !== undefined && req.body.profileImage !== '') {
       user.profileImage = req.body.profileImage;

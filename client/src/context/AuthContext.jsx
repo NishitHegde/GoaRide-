@@ -10,11 +10,31 @@ export const AuthProvider = ({ children }) => {
   const { showToast } = useToast();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('userInfo');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const verifyUserSession = async () => {
+      const storedUser = localStorage.getItem('userInfo');
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          if (parsed?.token) {
+            // Verify token & fetch fresh user profile from /api/auth/me
+            const { data } = await API.get('/auth/me');
+            const verifiedUser = { ...data, token: parsed.token };
+            setUser(verifiedUser);
+            localStorage.setItem('userInfo', JSON.stringify(verifiedUser));
+          } else {
+            localStorage.removeItem('userInfo');
+            setUser(null);
+          }
+        } catch (error) {
+          console.warn('Session token verification failed or expired. Logging out user...');
+          localStorage.removeItem('userInfo');
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    verifyUserSession();
   }, []);
 
   const login = async (email, password) => {
@@ -25,7 +45,7 @@ export const AuthProvider = ({ children }) => {
       showToast(`Welcome back, ${data.name}!`, 'success');
       return data;
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed. Please check credentials.';
+      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       showToast(message, 'error');
       throw error;
     }
@@ -39,16 +59,22 @@ export const AuthProvider = ({ children }) => {
       showToast(`Welcome to GoaRide, ${data.name}!`, 'success');
       return data;
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed.';
+      const message = error.response?.data?.message || 'Registration failed. Please check form details.';
       showToast(message, 'error');
       throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('userInfo');
-    showToast('Logged out successfully', 'info');
+  const logout = async () => {
+    try {
+      await API.post('/auth/logout');
+    } catch (error) {
+      // Ignore network errors on logout API call
+    } finally {
+      setUser(null);
+      localStorage.removeItem('userInfo');
+      showToast('Logged out successfully', 'info');
+    }
   };
 
   const updateProfile = async (updatedData) => {

@@ -4,12 +4,12 @@ import { autoSeedIfEmpty } from '../seed/autoSeed.js';
 let mongoMemoryServer = null;
 
 const connectDB = async () => {
-  // Production: use MongoDB Atlas / external MongoDB
-  if (process.env.NODE_ENV === 'production') {
-    const mongoUri = process.env.MONGO_URI;
+  const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
+  // Production environment check
+  if (process.env.NODE_ENV === 'production') {
     if (!mongoUri) {
-      console.error('❌ MONGO_URI environment variable is not set.');
+      console.error('❌ FATAL ERROR: Neither MONGO_URI nor MONGODB_URI environment variable is defined in production.');
       process.exit(1);
     }
 
@@ -18,57 +18,43 @@ const connectDB = async () => {
         serverSelectionTimeoutMS: 10000,
       });
 
-      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-
+      console.log(`✅ Production MongoDB Connected: ${conn.connection.host}`);
       await autoSeedIfEmpty();
     } catch (error) {
-      console.error(`❌ MongoDB Connection Fatal Error: ${error.message}`);
+      console.error(`❌ Production MongoDB Connection Error: ${error.message}`);
       process.exit(1);
     }
 
     return;
   }
 
-  // Development: try local MongoDB first
-  const mongoUri =
-    process.env.MONGO_URI ||
-    'mongodb://127.0.0.1:27017/goaride';
-
-  try {
-    const conn = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 2000,
-    });
-
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-
-    await autoSeedIfEmpty();
-  } catch (error) {
-    console.log(
-      'ℹ️ Local MongoDB not detected. Starting embedded MongoDB for development...'
-    );
-
+  // Development environment check
+  if (mongoUri) {
     try {
-      const { MongoMemoryServer } =
-        await import('mongodb-memory-server');
+      const conn = await mongoose.connect(mongoUri, {
+        serverSelectionTimeoutMS: 3000,
+      });
 
-      mongoMemoryServer = await MongoMemoryServer.create();
-
-      const inMemoryUri = mongoMemoryServer.getUri();
-
-      const conn = await mongoose.connect(inMemoryUri);
-
-      console.log(
-        `✅ Embedded MongoDB Server Connected: ${inMemoryUri}`
-      );
-
+      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
       await autoSeedIfEmpty();
-    } catch (memErr) {
-      console.error(
-        `❌ MongoDB Connection Fatal Error: ${memErr.message}`
-      );
-
-      process.exit(1);
+      return;
+    } catch (error) {
+      console.log('ℹ️ Specified MONGO_URI failed or local MongoDB not running. Falling back to embedded MongoDB...');
     }
+  }
+
+  // Development fallback to MongoMemoryServer
+  try {
+    const { MongoMemoryServer } = await import('mongodb-memory-server');
+    mongoMemoryServer = await MongoMemoryServer.create();
+    const inMemoryUri = mongoMemoryServer.getUri();
+
+    const conn = await mongoose.connect(inMemoryUri);
+    console.log(`✅ Embedded Dev MongoDB Server Connected: ${inMemoryUri}`);
+    await autoSeedIfEmpty();
+  } catch (memErr) {
+    console.error(`❌ Embedded MongoDB Connection Fatal Error: ${memErr.message}`);
+    process.exit(1);
   }
 };
 
