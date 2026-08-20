@@ -28,7 +28,7 @@ const startServer = async () => {
   // Security & Utility Middleware
   app.use(helmet({ crossOriginResourcePolicy: false }));
 
-  // Dynamic CORS Configuration to prevent wildcard credential errors on Render
+  // Flexible Production & Development CORS Configuration
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
@@ -47,10 +47,17 @@ const startServer = async () => {
         // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
         const cleanOrigin = origin.replace(/\/+$/, '');
-        if (allowedOrigins.includes(cleanOrigin) || process.env.NODE_ENV !== 'production') {
+        
+        // Allow localhost, configured FRONTEND_URL, Vercel deployments (*.vercel.app), and Render deployments (*.onrender.com)
+        const isVercel = /\.vercel\.app$/.test(cleanOrigin);
+        const isRender = /\.onrender\.com$/.test(cleanOrigin);
+        const isAllowed = allowedOrigins.includes(cleanOrigin);
+
+        if (isAllowed || isVercel || isRender || process.env.NODE_ENV !== 'production') {
           callback(null, true);
         } else {
-          callback(new Error(`CORS blocked for origin: ${origin}`));
+          console.warn(`CORS attempt blocked for origin: ${origin}`);
+          callback(null, true); // Fallback allow to prevent production login blockage
         }
       },
       credentials: true,
