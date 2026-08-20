@@ -74,21 +74,41 @@ const startServer = async () => {
   const __dirname = path.resolve();
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-  // Health check endpoint
+  // Health check endpoints
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', message: 'GoaRide API Server Running', timestamp: new Date() });
+  });
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'GoaRide API Server Running', timestamp: new Date() });
   });
 
-  // API Routes
+  // API Routes (Mounted under both /api/* and /* for robust URL configuration compatibility)
   app.use('/api/auth', authRoutes);
+  app.use('/auth', authRoutes);
+
   app.use('/api/users', userRoutes);
+  app.use('/users', userRoutes);
+
   app.use('/api/vehicles', vehicleRoutes);
+  app.use('/vehicles', vehicleRoutes);
+
   app.use('/api/bookings', bookingRoutes);
+  app.use('/bookings', bookingRoutes);
+
   app.use('/api/favorites', favoriteRoutes);
+  app.use('/favorites', favoriteRoutes);
+
   app.use('/api/reviews', reviewRoutes);
+  app.use('/reviews', reviewRoutes);
+
   app.use('/api/admin', adminRoutes);
+  app.use('/admin', adminRoutes);
+
   app.use('/api/payments', paymentRoutes);
+  app.use('/payments', paymentRoutes);
+
   app.use('/api/ai', aiRoutes);
+  app.use('/ai', aiRoutes);
 
   // Error Handling Middleware
   app.use(notFound);
