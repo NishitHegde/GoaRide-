@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Phone, Lock, ArrowRight, Upload, Sparkles, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Phone, Lock, ArrowRight, Upload, Sparkles, ShieldCheck, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -32,24 +32,40 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name.trim() || !email.trim() || !phone.trim() || !password) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Passwords do not match.');
       return;
     }
 
     try {
       setLoading(true);
       setError('');
-      const user = await register(name, email, phone, password, role);
+      const user = await register(name.trim(), email.trim(), phone.trim(), password, role);
       setLoading(false);
-      if (user.role === 'ADMIN') {
+      if (user?.role === 'ADMIN') {
         navigate('/admin');
       } else {
         navigate('/bookings');
       }
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.message || 'Registration failed. Please check form details.');
+      console.error('Registration error:', err);
+      const errMsg =
+        err.response?.data?.message ||
+        (err.message === 'Network Error'
+          ? 'Cannot connect to backend server. Make sure backend is running or VITE_API_URL is configured correctly.'
+          : 'Registration failed. Please check your form details.');
+      setError(errMsg);
     }
   };
 
@@ -73,8 +89,8 @@ export default function Register() {
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
-            <span>⚠️</span>
+          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
@@ -142,7 +158,7 @@ export default function Register() {
 
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Password
+              <Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Password (min. 6 characters)
             </label>
             <div className="relative">
               <input
@@ -152,6 +168,7 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium shadow-sm transition-all pr-10"
                 required
+                minLength={6}
               />
               <button
                 type="button"

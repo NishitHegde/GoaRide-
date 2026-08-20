@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,19 +15,30 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email address and password');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
-      const user = await login(email, password);
+      const user = await login(email.trim(), password);
       setLoading(false);
-      if (user.role === 'ADMIN') {
+      if (user?.role === 'ADMIN') {
         navigate('/admin');
       } else {
         navigate('/bookings');
       }
     } catch (err) {
       setLoading(false);
-      setError(err.response?.data?.message || 'Login failed. Please check your email and password.');
+      console.error('Login error:', err);
+      const errMsg =
+        err.response?.data?.message ||
+        (err.message === 'Network Error'
+          ? 'Cannot connect to backend server. Make sure backend is running or VITE_API_URL is configured correctly.'
+          : 'Invalid email or password.');
+      setError(errMsg);
     }
   };
 
@@ -51,8 +62,8 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
-            <span>⚠️</span>
+          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
