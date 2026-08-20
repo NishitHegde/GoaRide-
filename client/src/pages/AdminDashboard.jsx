@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import API from '../services/api';
+import { socket } from '../services/socket';
 import { useToast } from '../context/ToastContext';
-import { Shield, Car, Calendar, Users, DollarSign, Plus, Edit, Trash2, CheckCircle, RefreshCw, X, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import { Shield, Car, Calendar, Users, DollarSign, Plus, Edit, Trash2, CheckCircle, RefreshCw, X, Radio, Play, Pause, AlertTriangle, MapPin, Gauge } from 'lucide-react';
+
+const liveCarIcon = new L.Icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202003.png',
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+});
 
 export default function AdminDashboard() {
   const { showToast } = useToast();
@@ -13,6 +22,36 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Master Telemetry Fleet Map State
+  const [masterFleetGps, setMasterFleetGps] = useState([
+    { tripId: 'trip_101', name: 'Honda Activa 6G', lat: 15.5438, lng: 73.7554, speed: 38, status: 'ON_TRIP' },
+    { tripId: 'trip_102', name: 'Mahindra Thar 4x4', lat: 15.5553, lng: 73.7517, speed: 45, status: 'ON_TRIP' },
+    { tripId: 'trip_103', name: 'Toyota Innova Crysta', lat: 15.3808, lng: 73.8314, speed: 52, status: 'AVAILABLE' },
+    { tripId: 'trip_104', name: 'RE Classic 350', lat: 15.6028, lng: 73.7381, speed: 0, status: 'OFFLINE' },
+  ]);
+
+  // Trip Playback History State
+  const [playbackActive, setPlaybackActive] = useState(false);
+  const [playbackIndex, setPlaybackIndex] = useState(0);
+  const playbackIntervalRef = useRef(null);
+
+  const playbackRoute = [
+    [15.5438, 73.7554],
+    [15.5401, 73.7621],
+    [15.5350, 73.7710],
+    [15.5280, 73.7850],
+    [15.5100, 73.8050],
+    [15.4989, 73.8278],
+    [15.4850, 73.8500],
+    [15.4500, 73.9200],
+    [15.4000, 73.9800],
+    [15.3500, 74.1500],
+    [15.3144, 74.3143],
+  ];
+
+  const [sosBanners, setSosBanners] = useState([]);
+
+  // Modal State
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState(null);
 
@@ -32,6 +71,36 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchAdminDashboardData();
+
+    socket.connect();
+    socket.emit('join-admin');
+
+    socket.on('master-telemetry-update', (data) => {
+      setMasterFleetGps((prev) => {
+        const exists = prev.find((item) => item.tripId === data.tripId);
+        if (exists) {
+          return prev.map((item) =>
+            item.tripId === data.tripId
+              ? { ...item, lat: data.lat, lng: data.lng, speed: data.speed }
+              : item
+          );
+        } else {
+          return [...prev, { tripId: data.tripId, name: 'Live Goa Vehicle', lat: data.lat, lng: data.lng, speed: data.speed, status: 'ON_TRIP' }];
+        }
+      });
+    });
+
+    socket.on('admin-sos-alert', (sosData) => {
+      setSosBanners((prev) => [sosData, ...prev]);
+      showToast('🚨 HIGH PRIORITY: SOS Emergency Triggered!', 'error');
+    });
+
+    return () => {
+      socket.off('master-telemetry-update');
+      socket.off('admin-sos-alert');
+      if (playbackIntervalRef.current) clearInterval(playbackIntervalRef.current);
+      socket.disconnect();
+    };
   }, []);
 
   const fetchAdminDashboardData = async () => {
@@ -52,7 +121,24 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error(error);
       setLoading(false);
-      showToast('Failed to fetch admin data', 'error');
+    }
+  };
+
+  const togglePlayback = () => {
+    if (playbackActive) {
+      clearInterval(playbackIntervalRef.current);
+      setPlaybackActive(false);
+    } else {
+      setPlaybackActive(true);
+      let idx = playbackIndex;
+      playbackIntervalRef.current = setInterval(() => {
+        if (idx >= playbackRoute.length - 1) {
+          idx = 0;
+        } else {
+          idx += 1;
+        }
+        setPlaybackIndex(idx);
+      }, 1500);
     }
   };
 
@@ -169,7 +255,7 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800 pb-5">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-900 dark:text-amber-300 text-xs font-extrabold border border-amber-300 dark:border-amber-500/30 shadow-sm">
-            <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Fleet Admin Console
+            <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" /> Fleet Admin Master Console
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">Admin Dashboard</h1>
         </div>
@@ -182,10 +268,26 @@ export default function AdminDashboard() {
         </button>
       </div>
 
+      {/* SOS Alert Notification Banners */}
+      {sosBanners.length > 0 && (
+        <div className="space-y-2">
+          {sosBanners.map((sos, i) => (
+            <div key={i} className="p-4 rounded-2xl bg-rose-600 text-white font-extrabold text-xs flex items-center justify-between shadow-xl animate-pulse">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
+                <span>🚨 EMERGENCY SOS ALERT: {sos.message || 'Customer requested emergency assistance!'} (Trip #{sos.tripId})</span>
+              </div>
+              <button onClick={() => setSosBanners(prev => prev.filter((_, idx) => idx !== i))} className="px-3 py-1 bg-white text-rose-900 rounded-lg text-[10px] font-black">
+                Dismiss
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* KPI Stats Grid */}
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          
           <div className="p-6 rounded-3xl glass-panel border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
               <span className="text-xs font-bold uppercase tracking-wider">Total Revenue</span>
@@ -217,37 +319,116 @@ export default function AdminDashboard() {
             </div>
             <p className="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400">{stats.totalUsers}</p>
           </div>
-
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-sm font-bold text-slate-600 dark:text-slate-400">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6 text-sm font-bold text-slate-600 dark:text-slate-400 overflow-x-auto pb-2">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`pb-3 border-b-2 ${activeTab === 'overview' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+          className={`pb-3 border-b-2 transition-colors flex-shrink-0 ${activeTab === 'overview' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
         >
           Overview
         </button>
         <button
+          onClick={() => setActiveTab('mastermap')}
+          className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors flex-shrink-0 ${activeTab === 'mastermap' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+        >
+          <Radio className="w-4 h-4 text-amber-500" /> Master Telemetry Map
+        </button>
+        <button
+          onClick={() => setActiveTab('playback')}
+          className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors flex-shrink-0 ${activeTab === 'playback' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+        >
+          <Play className="w-4 h-4 text-sky-600" /> Trip Playback Replayer
+        </button>
+        <button
           onClick={() => setActiveTab('vehicles')}
-          className={`pb-3 border-b-2 ${activeTab === 'vehicles' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+          className={`pb-3 border-b-2 transition-colors flex-shrink-0 ${activeTab === 'vehicles' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
         >
           Manage Vehicles ({vehicles.length})
         </button>
         <button
           onClick={() => setActiveTab('bookings')}
-          className={`pb-3 border-b-2 ${activeTab === 'bookings' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+          className={`pb-3 border-b-2 transition-colors flex-shrink-0 ${activeTab === 'bookings' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
         >
           Manage Bookings ({bookings.length})
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`pb-3 border-b-2 ${activeTab === 'users' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+          className={`pb-3 border-b-2 transition-colors flex-shrink-0 ${activeTab === 'users' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
         >
           Manage Users ({users.length})
         </button>
       </div>
+
+      {/* TAB: MASTER TELEMETRY MAP */}
+      {activeTab === 'mastermap' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Live Master Fleet Telemetry Stream</h3>
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Socket.IO Master Stream Active
+            </span>
+          </div>
+
+          <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl h-[500px]">
+            <MapContainer center={[15.4989, 73.8278]} zoom={11} scrollWheelZoom={true} className="w-full h-full">
+              <TileLayer
+                attribution='&copy; OpenStreetMap contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {masterFleetGps.map((v, i) => (
+                <Marker key={i} position={[v.lat, v.lng]} icon={liveCarIcon}>
+                  <Popup className="font-sans text-xs">
+                    <strong className="text-slate-900 block">{v.name}</strong>
+                    <span className="text-sky-600 font-bold">Speed: {v.speed} km/h</span><br />
+                    <span className="text-emerald-600 font-extrabold">Status: {v.status}</span>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: TRIP PLAYBACK REPLAYER */}
+      {activeTab === 'playback' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Trip History Playback Replayer</h3>
+              <p className="text-xs text-slate-500 font-medium">Replay driver traversal route history along OpenStreetMap polyline</p>
+            </div>
+
+            <button
+              onClick={togglePlayback}
+              className={`px-5 py-2.5 rounded-xl font-bold text-xs shadow flex items-center gap-2 ${
+                playbackActive ? 'bg-amber-500 text-slate-900' : 'bg-sky-600 text-white'
+              }`}
+            >
+              {playbackActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              <span>{playbackActive ? 'Pause Playback' : 'Replay Trip History'}</span>
+            </button>
+          </div>
+
+          <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl h-[460px]">
+            <MapContainer center={playbackRoute[playbackIndex]} zoom={12} scrollWheelZoom={true} className="w-full h-full">
+              <TileLayer
+                attribution='&copy; OpenStreetMap contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Polyline positions={playbackRoute} color="#0284c7" weight={6} opacity={0.7} />
+              <Marker position={playbackRoute[playbackIndex]} icon={liveCarIcon}>
+                <Popup className="font-sans text-xs">
+                  <strong className="text-slate-900 block">Trip Playback Position</strong>
+                  <span>Waypoint {playbackIndex + 1} of {playbackRoute.length}</span>
+                </Popup>
+              </Marker>
+            </MapContainer>
+          </div>
+        </div>
+      )}
 
       {/* TAB: OVERVIEW */}
       {activeTab === 'overview' && stats && (

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Car, MapPin, Bot, Calendar, Shield, User, LogOut, Menu, X, Sun, Moon } from 'lucide-react';
+import { Car, MapPin, Bot, Calendar, Shield, User, LogOut, Menu, X, Sun, Moon, Radio } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -53,6 +53,18 @@ export default function Navbar() {
             >
               <MapPin className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
               <span>Live Map</span>
+            </Link>
+
+            <Link
+              to="/driver"
+              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                isActive('/driver')
+                  ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold border border-emerald-200 dark:border-emerald-500/40'
+                  : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Driver Console</span>
             </Link>
 
             <Link
@@ -173,6 +185,7 @@ export default function Navbar() {
         <div className="md:hidden bg-white dark:bg-[#070e1b] border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-3">
           <Link to="/vehicles" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Fleet</Link>
           <Link to="/tracking" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Live Map</Link>
+          <Link to="/driver" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Driver Console</Link>
           <Link to="/ai-assistant" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">AI Trip Bot</Link>
           {user && <Link to="/bookings" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">My Bookings</Link>}
           {user?.role === 'ADMIN' && <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Admin Console</Link>}

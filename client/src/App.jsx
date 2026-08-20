@@ -12,6 +12,7 @@ import Vehicles from './pages/Vehicles';
 import VehicleDetails from './pages/VehicleDetails';
 import Bookings from './pages/Bookings';
 import Tracking from './pages/Tracking';
+import DriverDashboard from './pages/DriverDashboard';
 import AiAssistant from './pages/AiAssistant';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -31,6 +32,7 @@ export default function App() {
                 <Route path="/vehicles" element={<Vehicles />} />
                 <Route path="/vehicles/:id" element={<VehicleDetails />} />
                 <Route path="/tracking" element={<Tracking />} />
+                <Route path="/driver" element={<DriverDashboard />} />
                 <Route path="/ai-assistant" element={<AiAssistant />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

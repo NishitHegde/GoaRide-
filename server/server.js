@@ -3,8 +3,11 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import http from 'http';
+import { Server } from 'socket.io';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import { initTrackingSocket } from './socket/trackingSocket.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -16,6 +19,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import tripRoutes from './routes/tripRoutes.js';
 
 dotenv.config();
 
@@ -24,11 +28,9 @@ const startServer = async () => {
   await connectDB();
 
   const app = express();
+  const server = http.createServer(app);
 
-  // Security & Utility Middleware
-  app.use(helmet({ crossOriginResourcePolicy: false }));
-
-  // Flexible Production & Development CORS Configuration
+  // Dynamic CORS Configuration
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
@@ -41,14 +43,12 @@ const startServer = async () => {
     allowedOrigins.push(cleanFrontendUrl);
   }
 
-  app.use(
-    cors({
+  // Socket.IO Server Setup
+  const io = new Server(server, {
+    cors: {
       origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
         const cleanOrigin = origin.replace(/\/+$/, '');
-        
-        // Allow localhost, configured FRONTEND_URL, Vercel deployments (*.vercel.app), and Render deployments (*.onrender.com)
         const isVercel = /\.vercel\.app$/.test(cleanOrigin);
         const isRender = /\.onrender\.com$/.test(cleanOrigin);
         const isAllowed = allowedOrigins.includes(cleanOrigin);
@@ -56,8 +56,32 @@ const startServer = async () => {
         if (isAllowed || isVercel || isRender || process.env.NODE_ENV !== 'production') {
           callback(null, true);
         } else {
-          console.warn(`CORS attempt blocked for origin: ${origin}`);
-          callback(null, true); // Fallback allow to prevent production login blockage
+          callback(null, true);
+        }
+      },
+      credentials: true,
+    },
+  });
+
+  // Initialize Socket.IO Telemetry Handler
+  initTrackingSocket(io);
+
+  // Express Security & Utility Middleware
+  app.use(helmet({ crossOriginResourcePolicy: false }));
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const cleanOrigin = origin.replace(/\/+$/, '');
+        const isVercel = /\.vercel\.app$/.test(cleanOrigin);
+        const isRender = /\.onrender\.com$/.test(cleanOrigin);
+        const isAllowed = allowedOrigins.includes(cleanOrigin);
+
+        if (isAllowed || isVercel || isRender || process.env.NODE_ENV !== 'production') {
+          callback(null, true);
+        } else {
+          callback(null, true);
         }
       },
       credentials: true,
@@ -66,11 +90,9 @@ const startServer = async () => {
     })
   );
 
-  // Increase payload limit for base64 profile image uploads
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-  // Serve Uploaded Files Statically
   const __dirname = path.resolve();
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -82,7 +104,7 @@ const startServer = async () => {
     res.json({ status: 'ok', message: 'GoaRide API Server Running', timestamp: new Date() });
   });
 
-  // API Routes (Mounted under both /api/* and /* for robust URL configuration compatibility)
+  // API Routes
   app.use('/api/auth', authRoutes);
   app.use('/auth', authRoutes);
 
@@ -110,14 +132,17 @@ const startServer = async () => {
   app.use('/api/ai', aiRoutes);
   app.use('/ai', aiRoutes);
 
+  app.use('/api/trips', tripRoutes);
+  app.use('/trips', tripRoutes);
+
   // Error Handling Middleware
   app.use(notFound);
   app.use(errorHandler);
 
   const PORT = process.env.PORT || 5000;
 
-  app.listen(PORT, () => {
-    console.log(`🚀 GoaRide MERN Backend Server running on port ${PORT}`);
+  server.listen(PORT, () => {
+    console.log(`🚀 GoaRide MERN Real-Time Socket.IO Server running on port ${PORT}`);
   });
 };
 
