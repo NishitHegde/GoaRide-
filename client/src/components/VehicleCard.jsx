@@ -8,7 +8,8 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
 
   const handleTrackVehicle = (e) => {
     e.stopPropagation();
-    navigate(`/tracking?vehicleId=${vehicle._id}&name=${encodeURIComponent(vehicle.name)}&location=${encodeURIComponent(vehicle.location)}`);
+    const trkId = vehicle.trackingId || 'TRK-8901';
+    navigate(`/tracking?trackingId=${trkId}&name=${encodeURIComponent(vehicle.name)}`);
   };
 
   return (
@@ -97,7 +98,7 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
             <button
               onClick={handleTrackVehicle}
               className="px-3 py-2 rounded-xl bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 dark:hover:bg-orange-900 text-orange-800 dark:text-orange-300 font-extrabold text-[11px] border border-orange-300 dark:border-orange-500/40 flex items-center gap-1 transition-all shadow-sm"
-              title="Track live GPS location on map"
+              title="Track live GPS location using Tracking ID"
             >
               <Radio className="w-3 h-3 text-orange-600 dark:text-orange-400 animate-pulse" />
               <span>Track</span>

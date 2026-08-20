@@ -2,6 +2,10 @@ import mongoose from 'mongoose';
 
 const vehicleSchema = new mongoose.Schema(
   {
+    trackingId: {
+      type: String,
+      default: '',
+    },
     name: {
       type: String,
       required: [true, 'Vehicle name is required'],

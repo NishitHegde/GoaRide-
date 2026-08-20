@@ -426,7 +426,12 @@ export const autoSeedIfEmpty = async () => {
       profileImage: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300',
     });
 
-    const createdVehicles = await Vehicle.insertMany(initialVehicles);
+    const vehiclesWithTrackingIds = initialVehicles.map((v, i) => ({
+      ...v,
+      trackingId: `TRK-890${i + 1}`,
+    }));
+
+    const createdVehicles = await Vehicle.insertMany(vehiclesWithTrackingIds);
 
     await Review.insertMany([
       {
