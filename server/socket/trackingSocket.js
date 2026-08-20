@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Trip from '../models/Trip.js';
 
 export const initTrackingSocket = (io) => {
@@ -41,20 +42,22 @@ export const initTrackingSocket = (io) => {
           ...updatePayload,
         });
 
-        // Asynchronously persist coordinate in MongoDB history
-        await Trip.findByIdAndUpdate(tripId, {
-          currentGps: updatePayload,
-          $push: {
-            tripHistory: {
-              lat,
-              lng,
-              speed,
-              heading,
-              batteryFuel,
-              timestamp: new Date(),
+        // Safely persist to MongoDB if tripId is a valid Mongoose ObjectId
+        if (mongoose.Types.ObjectId.isValid(tripId)) {
+          await Trip.findByIdAndUpdate(tripId, {
+            currentGps: updatePayload,
+            $push: {
+              tripHistory: {
+                lat,
+                lng,
+                speed,
+                heading,
+                batteryFuel,
+                timestamp: new Date(),
+              },
             },
-          },
-        });
+          });
+        }
       } catch (error) {
         console.error(`Socket location update error: ${error.message}`);
       }
@@ -69,9 +72,12 @@ export const initTrackingSocket = (io) => {
         io.to(`trip_${tripId}`).emit('sos-alert', sosItem);
         io.to('admin_telemetry').emit('admin-sos-alert', { tripId, ...sosItem });
 
-        await Trip.findByIdAndUpdate(tripId, {
-          $push: { sosAlerts: sosItem },
-        });
+        // Safely persist to MongoDB if tripId is a valid Mongoose ObjectId
+        if (mongoose.Types.ObjectId.isValid(tripId)) {
+          await Trip.findByIdAndUpdate(tripId, {
+            $push: { sosAlerts: sosItem },
+          });
+        }
       } catch (error) {
         console.error(`Socket SOS error: ${error.message}`);
       }
