@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import API from '../services/api';
 import { socket } from '../services/socket';
 import { useToast } from '../context/ToastContext';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Search, MapPin, Navigation, ShieldCheck, Clock, Radio, Compass, Zap, PhoneCall, AlertTriangle, ArrowRight, Gauge, Fuel, Route } from 'lucide-react';
+import { MapPin, Navigation, Radio, AlertTriangle, Gauge, PhoneCall, Route, Car } from 'lucide-react';
 
 const bikeIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
@@ -44,7 +45,11 @@ function MapRecenter({ center, zoom }) {
 }
 
 export default function Tracking() {
+  const [searchParams] = useSearchParams();
   const { showToast } = useToast();
+
+  const urlVehicleName = searchParams.get('name') || '';
+  const urlVehicleLocation = searchParams.get('location') || '';
 
   const goaHotspots = [
     { name: 'Calangute Beach', lat: 15.5438, lng: 73.7554 },
@@ -57,6 +62,9 @@ export default function Tracking() {
     { name: 'Colva Beach', lat: 15.2784, lng: 73.9145 },
   ];
 
+  const [fleetVehicles, setFleetVehicles] = useState([]);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+
   const [pickupIdx, setPickupIdx] = useState(0);
   const [dropIdx, setDropIdx] = useState(6);
 
@@ -64,7 +72,6 @@ export default function Tracking() {
   const [routeDetails, setRouteDetails] = useState({ distanceKm: 0, durationMins: 0, steps: [] });
   const [planningLoading, setPlanningLoading] = useState(false);
 
-  const [activeTrip, setActiveTrip] = useState(null);
   const [telemetry, setTelemetry] = useState({
     lat: 15.5438,
     lng: 73.7554,
@@ -74,10 +81,11 @@ export default function Tracking() {
     updatedAt: new Date(),
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [sosActive, setSosActive] = useState(false);
 
   useEffect(() => {
+    fetchFleet();
+
     socket.connect();
     socket.emit('join-admin');
 
@@ -97,7 +105,6 @@ export default function Tracking() {
       showToast('⚠️ Emergency SOS Alert Triggered! Responders notified.', 'error');
     });
 
-    // Auto plan initial route on load
     handleCalculateRoute(0, 6);
 
     return () => {
@@ -106,6 +113,24 @@ export default function Tracking() {
       socket.disconnect();
     };
   }, []);
+
+  const fetchFleet = async () => {
+    try {
+      const { data } = await API.get('/vehicles');
+      const list = Array.isArray(data) ? data : (data?.value || []);
+      setFleetVehicles(list);
+
+      if (urlVehicleName && list.length > 0) {
+        const found = list.find((v) => v.name.toLowerCase() === urlVehicleName.toLowerCase());
+        if (found) {
+          setSelectedVehicle(found);
+          showToast(`Tracking live GPS for ${found.name}`, 'info');
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleCalculateRoute = async (pIdx = pickupIdx, dIdx = dropIdx) => {
     try {
@@ -137,21 +162,36 @@ export default function Tracking() {
       });
 
       setPlanningLoading(false);
-      showToast(`Route calculated: ${data.distanceKm} km (${data.durationMins} mins)`, 'success');
     } catch (error) {
       setPlanningLoading(false);
-      showToast('Route calculation completed', 'info');
+    }
+  };
+
+  const handleSelectVehicleToTrack = (vId) => {
+    const v = fleetVehicles.find((item) => item._id === vId);
+    if (v) {
+      setSelectedVehicle(v);
+      const matchedSpot = goaHotspots.find((h) => h.name.toLowerCase().includes(v.location.toLowerCase()));
+      const targetLat = matchedSpot ? matchedSpot.lat : 15.5438;
+      const targetLng = matchedSpot ? matchedSpot.lng : 73.7554;
+
+      setTelemetry({
+        lat: targetLat,
+        lng: targetLng,
+        speed: 42,
+        heading: 90,
+        batteryFuel: 88,
+        updatedAt: new Date(),
+      });
+
+      showToast(`Targeting GPS stream for ${v.name} (${v.location})`, 'success');
     }
   };
 
   const handleTriggerSos = async () => {
-    try {
-      setSosActive(true);
-      socket.emit('sos-trigger', { tripId: activeTrip?._id || 'demo_trip' });
-      showToast('🚨 SOS Emergency Signal Sent to Police and Admin!', 'error');
-    } catch (error) {
-      showToast('SOS Signal Sent!', 'error');
-    }
+    setSosActive(true);
+    socket.emit('sos-trigger', { tripId: 'demo_trip' });
+    showToast('🚨 SOS Emergency Signal Sent to Police and Admin!', 'error');
   };
 
   const pickupPoint = goaHotspots[pickupIdx];
@@ -165,13 +205,14 @@ export default function Tracking() {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100 dark:bg-orange-950/80 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-extrabold shadow-sm">
             <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
-            <span>Real-Time OSRM Telemetry Stream</span>
+            <span>Live Vehicle Tracking System</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">Live Tracking & Route Planner</h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Uber/Ola/Rapido style GPS movement, shortest OSRM route polylines & turn-by-turn navigation</p>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+            {selectedVehicle ? `Tracking: ${selectedVehicle.name}` : 'Live Vehicle Tracking & Route Planner'}
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Real-time GPS tracking on Leaflet OpenStreetMap with OSRM routing</p>
         </div>
 
-        {/* SOS Emergency Trigger Button */}
         <button
           onClick={handleTriggerSos}
           className={`px-5 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-2 transition-all ${
@@ -185,19 +226,42 @@ export default function Tracking() {
         </button>
       </div>
 
-      {/* OSRM Route Selector Glass Bar */}
+      {/* Select Vehicle to Track & Route Selector Bar */}
       <div className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xl">
+        
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <span className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-1.5">
-            <Route className="w-4 h-4" /> Select Goa Pickup & Drop Route
+            <Car className="w-4 h-4" /> Select Vehicle to Track on Live Map
           </span>
-          <span className="text-xs font-bold text-slate-500">OSRM OpenStreetMap Engine</span>
+          {selectedVehicle && (
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-300">
+              Active Target: {selectedVehicle.name} ({selectedVehicle.location})
+            </span>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-bold">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-bold">
           <div>
             <label className="block text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Pickup Hotspot
+              <Car className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Target Vehicle
+            </label>
+            <select
+              value={selectedVehicle ? selectedVehicle._id : ''}
+              onChange={(e) => handleSelectVehicleToTrack(e.target.value)}
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white focus:outline-none"
+            >
+              <option value="">-- Choose Vehicle from Fleet --</option>
+              {fleetVehicles.map((v) => (
+                <option key={v._id} value={v._id}>
+                  {v.type === 'bike' ? '🏍️' : '🚗'} {v.name} ({v.location} - ₹{v.pricePerDay}/day)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Pickup Point
             </label>
             <select
               value={pickupIdx}
@@ -216,7 +280,7 @@ export default function Tracking() {
 
           <div>
             <label className="block text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Drop Destination
+              <MapPin className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" /> Destination
             </label>
             <select
               value={dropIdx}
@@ -244,6 +308,7 @@ export default function Tracking() {
             </button>
           </div>
         </div>
+
       </div>
 
       {/* Main Grid: Interactive Map & Live Telemetry Panel */}
@@ -252,14 +317,15 @@ export default function Tracking() {
         {/* Leaflet OpenStreetMap Container */}
         <div className="lg:col-span-2 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-2xl h-[520px] relative">
           
-          {/* Map Floating HUD Badge */}
           <div className="absolute top-4 left-4 z-10 glass-panel px-4 py-2 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-xs font-bold flex items-center gap-2 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-slate-900 dark:text-white">Live OpenStreetMap GPS Stream</span>
+            <span className="text-slate-900 dark:text-white">
+              {selectedVehicle ? `Tracking ${selectedVehicle.name}` : 'Live OpenStreetMap GPS Stream'}
+            </span>
           </div>
 
-          <MapContainer center={[telemetry.lat, telemetry.lng]} zoom={12} scrollWheelZoom={true} className="w-full h-full z-0">
-            <MapRecenter center={[telemetry.lat, telemetry.lng]} zoom={12} />
+          <MapContainer center={[telemetry.lat, telemetry.lng]} zoom={13} scrollWheelZoom={true} className="w-full h-full z-0">
+            <MapRecenter center={[telemetry.lat, telemetry.lng]} zoom={13} />
             
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -288,9 +354,12 @@ export default function Tracking() {
             </Marker>
 
             {/* Live Moving Vehicle Marker */}
-            <Marker position={[telemetry.lat, telemetry.lng]} icon={carIcon}>
+            <Marker
+              position={[telemetry.lat, telemetry.lng]}
+              icon={selectedVehicle?.type === 'bike' ? bikeIcon : carIcon}
+            >
               <Popup className="font-sans text-xs">
-                <strong className="text-slate-900 block">GoaRide Vehicle Telemetry</strong>
+                <strong className="text-slate-900 block">{selectedVehicle ? selectedVehicle.name : 'GoaRide Vehicle'}</strong>
                 <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h</span><br />
                 <span>Fuel/EV: {telemetry.batteryFuel}%</span>
               </Popup>

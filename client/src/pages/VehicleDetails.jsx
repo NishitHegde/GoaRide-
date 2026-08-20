@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import BookingModal from '../components/BookingModal';
-import { Star, MapPin, Fuel, Gauge, Users, ShieldCheck, Heart, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Star, MapPin, Fuel, Gauge, Users, ShieldCheck, Heart, ArrowLeft, CheckCircle2, Radio } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -58,6 +58,12 @@ export default function VehicleDetails() {
     }
   };
 
+  const handleTrackVehicle = () => {
+    if (vehicle) {
+      navigate(`/tracking?vehicleId=${vehicle._id}&name=${encodeURIComponent(vehicle.name)}&location=${encodeURIComponent(vehicle.location)}`);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-stone-600 font-bold">Loading Vehicle Details...</div>;
   }
@@ -75,7 +81,7 @@ export default function VehicleDetails() {
       
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-slate-900 transition-colors"
+        className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-200 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Fleet
       </button>
@@ -84,11 +90,11 @@ export default function VehicleDetails() {
         
         {/* Left Column: Big Image Gallery */}
         <div className="space-y-4">
-          <div className="relative rounded-3xl overflow-hidden border border-[#e2dad0] shadow-lg h-96 bg-white">
+          <div className="relative rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg h-96 bg-white dark:bg-slate-900">
             <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
             <button
               onClick={toggleFavorite}
-              className="absolute top-4 right-4 p-2.5 rounded-full bg-white/80 backdrop-blur-md shadow-md hover:bg-white transition-all text-stone-700 hover:text-rose-500"
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-md hover:bg-white transition-all text-slate-700 dark:text-slate-300 hover:text-rose-500"
             >
               <Heart className={`w-5 h-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
             </button>
@@ -99,57 +105,57 @@ export default function VehicleDetails() {
         <div className="space-y-6">
           
           <div className="space-y-2">
-            <span className="text-xs font-black text-sky-700 uppercase tracking-wide">{vehicle.brand}</span>
-            <h1 className="text-3xl font-extrabold text-slate-900">{vehicle.name}</h1>
-            <div className="flex items-center gap-3 text-xs font-medium text-stone-600">
-              <span className="flex items-center gap-1 text-amber-600 font-bold">
+            <span className="text-xs font-black text-sky-600 dark:text-cyan-400 uppercase tracking-wide">{vehicle.brand}</span>
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{vehicle.name}</h1>
+            <div className="flex items-center gap-3 text-xs font-medium text-slate-600 dark:text-slate-400">
+              <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-500" /> {vehicle.rating} ({vehicle.reviewCount} reviews)
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-sky-600" /> {vehicle.location} Pickup
+                <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> {vehicle.location} Pickup
               </span>
             </div>
           </div>
 
-          <p className="text-stone-600 text-sm leading-relaxed font-medium">
+          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
             {vehicle.description}
           </p>
 
           {/* Key Features Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white border border-[#e2dad0]">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div className="space-y-1">
-              <span className="text-[11px] text-stone-500 font-bold block">Fuel Type</span>
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <span className="text-[11px] text-slate-500 font-bold block">Fuel Type</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
                 <Fuel className="w-3.5 h-3.5 text-sky-600" /> {vehicle.fuelType}
               </span>
             </div>
             <div className="space-y-1">
-              <span className="text-[11px] text-stone-500 font-bold block">Transmission</span>
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <span className="text-[11px] text-slate-500 font-bold block">Transmission</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
                 <Gauge className="w-3.5 h-3.5 text-sky-600" /> {vehicle.transmission}
               </span>
             </div>
             <div className="space-y-1">
-              <span className="text-[11px] text-stone-500 font-bold block">Seating</span>
-              <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <span className="text-[11px] text-slate-500 font-bold block">Seating</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-sky-600" /> {vehicle.seats}
               </span>
             </div>
             <div className="space-y-1">
-              <span className="text-[11px] text-stone-500 font-bold block">Deposit</span>
-              <span className="text-xs font-bold text-slate-900">₹{vehicle.securityDeposit || 1000}</span>
+              <span className="text-[11px] text-slate-500 font-bold block">Deposit</span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white">₹{vehicle.securityDeposit || 1000}</span>
             </div>
           </div>
 
           {/* Highlights List */}
           {vehicle.features && vehicle.features.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-stone-700 uppercase tracking-wider">Included Features</h4>
-              <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-900">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Included Features</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-900 dark:text-slate-200">
                 {vehicle.features.map((feat, idx) => (
                   <div key={idx} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     <span>{feat}</span>
                   </div>
                 ))}
@@ -157,18 +163,29 @@ export default function VehicleDetails() {
             </div>
           )}
 
-          {/* Pricing & CTA Card */}
-          <div className="p-6 rounded-3xl bg-gradient-to-r from-[#eae4d7] to-[#e4dccf] border border-[#d6ccbe] flex items-center justify-between shadow-sm">
+          {/* Pricing & Dual Action Buttons */}
+          <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
             <div>
-              <span className="text-3xl font-black text-slate-900">₹{vehicle.pricePerDay}</span>
-              <span className="text-xs text-stone-600 font-medium"> / 24 hours</span>
+              <span className="text-3xl font-black text-slate-900 dark:text-white">₹{vehicle.pricePerDay}</span>
+              <span className="text-xs text-slate-500 font-medium"> / 24 hours</span>
             </div>
-            <button
-              onClick={() => setBookingModalOpen(true)}
-              className="px-6 py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 text-white font-bold text-sm rounded-2xl shadow-md shadow-sky-600/20 transition-all"
-            >
-              Book Now →
-            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleTrackVehicle}
+                className="px-4 py-3.5 bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 font-extrabold text-xs rounded-2xl border border-orange-300 dark:border-orange-500/40 flex items-center gap-1.5 transition-all shadow-sm"
+              >
+                <Radio className="w-4 h-4 text-orange-600 dark:text-orange-400 animate-pulse" />
+                <span>Track Live Location</span>
+              </button>
+
+              <button
+                onClick={() => setBookingModalOpen(true)}
+                className="px-6 py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 text-white font-bold text-sm rounded-2xl shadow-md shadow-sky-600/20 transition-all"
+              >
+                Book Now →
+              </button>
+            </div>
           </div>
 
         </div>
@@ -176,20 +193,20 @@ export default function VehicleDetails() {
       </div>
 
       {/* Customer Reviews Section */}
-      <div className="pt-10 border-t border-stone-300 space-y-6">
-        <h3 className="text-2xl font-extrabold text-slate-900">Customer Reviews ({reviews.length})</h3>
+      <div className="pt-10 border-t border-slate-200 dark:border-slate-800 space-y-6">
+        <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">Customer Reviews ({reviews.length})</h3>
 
         {reviews.length === 0 ? (
-          <p className="text-xs text-stone-600 font-medium">No reviews yet for this vehicle. Be the first to rate it!</p>
+          <p className="text-xs text-slate-500 font-medium">No reviews yet for this vehicle. Be the first to rate it!</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {reviews.map((r) => (
-              <div key={r._id} className="p-4 rounded-2xl bg-white border border-[#e2dad0] space-y-2 shadow-sm">
+              <div key={r._id} className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-sm">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-slate-900 text-xs">{r.user?.name || 'Tourist'}</span>
+                  <span className="font-bold text-slate-900 dark:text-white text-xs">{r.user?.name || 'Tourist'}</span>
                   <span className="text-amber-500 text-xs">{'★'.repeat(r.rating)}</span>
                 </div>
-                <p className="text-xs text-stone-600 italic">"{r.comment}"</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 italic">"{r.comment}"</p>
               </div>
             ))}
           </div>

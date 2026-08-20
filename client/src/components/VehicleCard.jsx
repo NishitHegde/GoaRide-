@@ -1,8 +1,15 @@
 import React from 'react';
-import { Heart, Star, MapPin, Fuel, Gauge, Users, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, Star, MapPin, Fuel, Gauge, Users, ArrowRight, Radio } from 'lucide-react';
 
 export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onBook }) {
+  const navigate = useNavigate();
   if (!vehicle) return null;
+
+  const handleTrackVehicle = (e) => {
+    e.stopPropagation();
+    navigate(`/tracking?vehicleId=${vehicle._id}&name=${encodeURIComponent(vehicle.name)}&location=${encodeURIComponent(vehicle.location)}`);
+  };
 
   return (
     <div className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group">
@@ -79,20 +86,31 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
           </div>
         </div>
 
-        {/* Pricing & Booking Button */}
-        <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+        {/* Pricing, Track Button & Booking Button */}
+        <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-2">
           <div>
-            <span className="text-2xl font-black text-slate-900 dark:text-white">₹{vehicle.pricePerDay}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium"> / day</span>
+            <span className="text-xl font-black text-slate-900 dark:text-white">₹{vehicle.pricePerDay}</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium"> / day</span>
           </div>
 
-          <button
-            onClick={() => onBook(vehicle)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-sky-600/20 flex items-center gap-1.5 transition-all"
-          >
-            <span>Book Now</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleTrackVehicle}
+              className="px-3 py-2 rounded-xl bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 dark:hover:bg-orange-900 text-orange-800 dark:text-orange-300 font-extrabold text-[11px] border border-orange-300 dark:border-orange-500/40 flex items-center gap-1 transition-all shadow-sm"
+              title="Track live GPS location on map"
+            >
+              <Radio className="w-3 h-3 text-orange-600 dark:text-orange-400 animate-pulse" />
+              <span>Track</span>
+            </button>
+
+            <button
+              onClick={() => onBook(vehicle)}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-sky-600/20 flex items-center gap-1 transition-all"
+            >
+              <span>Book</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
       </div>
