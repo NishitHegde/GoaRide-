@@ -1,0 +1,17 @@
+{
+  "name": "goaride-mern",
+  "version": "1.0.0",
+  "description": "GoaRide - AI Powered MERN Stack Vehicle Rental Platform",
+  "main": "server/server.js",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "client": "npm --prefix client dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "seed": "npm --prefix server run seed",
+    "build": "npm --prefix client run build",
+    "install-all": "npm install && npm --prefix server install && npm --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
