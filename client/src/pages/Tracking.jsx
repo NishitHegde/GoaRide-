@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import API from '../services/api';
 import { socket } from '../services/socket';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Navigation, Radio, AlertTriangle, Gauge, PhoneCall, Route, Car, Search, ShieldCheck } from 'lucide-react';
+import { MapPin, Navigation, Radio, AlertTriangle, Gauge, PhoneCall, Route, Car, Search, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
 
 const bikeIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
@@ -46,6 +47,7 @@ function MapRecenter({ center, zoom }) {
 
 export default function Tracking() {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const { showToast } = useToast();
 
   const urlTrackingId = searchParams.get('trackingId') || '';
@@ -63,8 +65,10 @@ export default function Tracking() {
   ];
 
   const [fleetVehicles, setFleetVehicles] = useState([]);
+  const [myBookedVehicleIds, setMyBookedVehicleIds] = useState([]);
   const [trackingInput, setTrackingInput] = useState(urlTrackingId || 'TRK-8901');
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const [pickupIdx, setPickupIdx] = useState(0);
   const [dropIdx, setDropIdx] = useState(6);
@@ -84,8 +88,10 @@ export default function Tracking() {
 
   const [sosActive, setSosActive] = useState(false);
 
+  const isAdmin = user?.role === 'ADMIN';
+
   useEffect(() => {
-    fetchFleet();
+    fetchData();
 
     socket.connect();
     socket.emit('join-admin');
@@ -113,14 +119,13 @@ export default function Tracking() {
       socket.off('sos-alert');
       socket.disconnect();
     };
-  }, []);
+  }, [user]);
 
-  const fetchFleet = async () => {
+  const fetchData = async () => {
     try {
-      const { data } = await API.get('/vehicles');
-      const list = Array.isArray(data) ? data : (data?.value || []);
+      const { data: vData } = await API.get('/vehicles');
+      const list = Array.isArray(vData) ? vData : (vData?.value || []);
       
-      // Assign tracking IDs if missing
       const processed = list.map((v, idx) => ({
         ...v,
         trackingId: v.trackingId || `TRK-890${idx + 1}`,
@@ -128,23 +133,46 @@ export default function Tracking() {
 
       setFleetVehicles(processed);
 
-      // Check if URL parameter or default tracking ID matches
+      // If customer is logged in, fetch their active bookings
+      let bookedIds = [];
+      if (user) {
+        try {
+          const { data: bData } = await API.get('/bookings/my');
+          bookedIds = Array.isArray(bData) ? bData.map((b) => b.vehicle?._id || b.vehicle) : [];
+          setMyBookedVehicleIds(bookedIds);
+        } catch (bErr) {
+          console.error(bErr);
+        }
+      }
+
+      // Check initial target tracking ID
       const targetId = urlTrackingId || 'TRK-8901';
       const found = processed.find(
         (v) => v.trackingId?.toLowerCase() === targetId.toLowerCase() || v.name.toLowerCase().includes(urlVehicleName.toLowerCase())
       );
 
       if (found) {
-        setSelectedVehicle(found);
-        setTrackingInput(found.trackingId);
-        updateVehicleGps(found);
+        validateAndSetTargetVehicle(found, bookedIds);
       } else if (processed.length > 0) {
-        setSelectedVehicle(processed[0]);
-        setTrackingInput(processed[0].trackingId);
-        updateVehicleGps(processed[0]);
+        validateAndSetTargetVehicle(processed[0], bookedIds);
       }
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const validateAndSetTargetVehicle = (veh, bookedIds = myBookedVehicleIds) => {
+    const userHasBooking = bookedIds.includes(veh._id);
+
+    if (isAdmin || userHasBooking) {
+      setSelectedVehicle(veh);
+      setTrackingInput(veh.trackingId);
+      setAccessDenied(false);
+      updateVehicleGps(veh);
+    } else {
+      setSelectedVehicle(veh);
+      setTrackingInput(veh.trackingId);
+      setAccessDenied(true);
     }
   };
 
@@ -180,12 +208,14 @@ export default function Tracking() {
     );
 
     if (found) {
-      setSelectedVehicle(found);
-      setTrackingInput(found.trackingId);
-      updateVehicleGps(found);
-      showToast(`🎯 Tracking vehicle: ${found.name} (Tracking ID: ${found.trackingId})`, 'success');
+      validateAndSetTargetVehicle(found);
+      if (isAdmin || myBookedVehicleIds.includes(found._id)) {
+        showToast(`🎯 Tracking vehicle: ${found.name} (${found.trackingId})`, 'success');
+      } else {
+        showToast(`🔒 Access Restricted: You can only track vehicles you have booked.`, 'error');
+      }
     } else {
-      showToast(`No vehicle found with Tracking ID "${trackingInput}". Try TRK-8901 or TRK-8902.`, 'error');
+      showToast(`No vehicle found with Tracking ID "${trackingInput}".`, 'error');
     }
   };
 
@@ -224,6 +254,11 @@ export default function Tracking() {
   const pickupPoint = goaHotspots[pickupIdx];
   const dropPoint = goaHotspots[dropIdx];
 
+  // Vehicles available for tracking based on role
+  const trackableVehicles = isAdmin
+    ? fleetVehicles
+    : fleetVehicles.filter((v) => myBookedVehicleIds.includes(v._id));
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       
@@ -232,12 +267,16 @@ export default function Tracking() {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100 dark:bg-orange-950/80 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-extrabold shadow-sm">
             <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
-            <span>Real-Time Vehicle Tracking Engine</span>
+            <span>{isAdmin ? 'Admin Master Vehicle Tracking' : 'Customer Active Booking Tracking'}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
             {selectedVehicle ? `Tracking ID: ${selectedVehicle.trackingId} (${selectedVehicle.name})` : 'Live Vehicle Tracking'}
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">Track any specific vehicle using its unique Tracking ID on Leaflet OpenStreetMap</p>
+          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+            {isAdmin
+              ? 'Admin Mode: Track all fleet vehicles live across Goa'
+              : 'Customer Mode: Track your booked vehicle live GPS stream'}
+          </p>
         </div>
 
         <button
@@ -258,11 +297,15 @@ export default function Tracking() {
         
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <span className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-1.5">
-            <Search className="w-4 h-4" /> Enter Tracking ID to Pinpoint Vehicle Location
+            <Search className="w-4 h-4" /> Enter Tracking ID to Track Vehicle
           </span>
           {selectedVehicle && (
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-3 py-1 rounded-full border border-emerald-300">
-              Tracking ID: {selectedVehicle.trackingId} ({selectedVehicle.name})
+            <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
+              !accessDenied
+                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border-emerald-300'
+                : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border-amber-300'
+            }`}>
+              {accessDenied ? '🔒 Booking Required to Track' : `Tracking ID: ${selectedVehicle.trackingId}`}
             </span>
           )}
         </div>
@@ -273,29 +316,27 @@ export default function Tracking() {
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
             <input
               type="text"
-              placeholder="Enter Vehicle Tracking ID (e.g. TRK-8901, TRK-8902, TRK-8908)..."
+              placeholder="Enter Vehicle Tracking ID (e.g. TRK-8901, TRK-8902)..."
               value={trackingInput}
               onChange={(e) => setTrackingInput(e.target.value)}
               className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-bold shadow-sm transition-all"
             />
           </div>
 
-          {/* Quick Dropdown Select */}
+          {/* Role-Based Quick Dropdown Select */}
           <select
             value={selectedVehicle ? selectedVehicle.trackingId : ''}
             onChange={(e) => {
               setTrackingInput(e.target.value);
               const found = fleetVehicles.find((v) => v.trackingId === e.target.value);
               if (found) {
-                setSelectedVehicle(found);
-                updateVehicleGps(found);
-                showToast(`🎯 Tracking: ${found.name} (${found.trackingId})`, 'success');
+                validateAndSetTargetVehicle(found);
               }
             }}
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
           >
-            <option value="">-- Quick Select Tracking ID --</option>
-            {fleetVehicles.map((v) => (
+            <option value="">{isAdmin ? '-- Select Any Vehicle (Admin Access) --' : '-- Select My Booked Vehicles --'}</option>
+            {trackableVehicles.map((v) => (
               <option key={v._id} value={v.trackingId}>
                 {v.trackingId} — {v.name} ({v.location})
               </option>
@@ -310,6 +351,22 @@ export default function Tracking() {
             <span>Track Vehicle</span>
           </button>
         </form>
+
+        {/* Access Restriction Banner for Standard Users without Booking */}
+        {accessDenied && (
+          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-start justify-between gap-4 shadow-sm">
+            <div className="flex items-start gap-2.5">
+              <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <strong className="block text-sm">Tracking Permission Restricted</strong>
+                <span>Customers can only track vehicles with active bookings. Please select one of your booked vehicles or book this vehicle to enable live GPS tracking telemetry.</span>
+              </div>
+            </div>
+            <Link to="/vehicles" className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-900 font-extrabold rounded-xl shadow text-xs flex-shrink-0">
+              Book Ride →
+            </Link>
+          </div>
+        )}
 
         {/* Route Selector Sub-Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs font-bold">
@@ -367,9 +424,13 @@ export default function Tracking() {
         <div className="lg:col-span-2 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-2xl h-[520px] relative">
           
           <div className="absolute top-4 left-4 z-10 glass-panel px-4 py-2 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-xs font-bold flex items-center gap-2 shadow-lg">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+            <span className={`w-2.5 h-2.5 rounded-full ${accessDenied ? 'bg-amber-500' : 'bg-emerald-500 animate-ping'}`} />
             <span className="text-slate-900 dark:text-white">
-              {selectedVehicle ? `Tracking ID: ${selectedVehicle.trackingId} (${selectedVehicle.name})` : 'Live OpenStreetMap GPS Stream'}
+              {accessDenied
+                ? '🔒 Permission Restricted (Booking Required)'
+                : selectedVehicle
+                ? `Tracking ID: ${selectedVehicle.trackingId} (${selectedVehicle.name})`
+                : 'Live OpenStreetMap GPS Stream'}
             </span>
           </div>
 
@@ -403,16 +464,18 @@ export default function Tracking() {
             </Marker>
 
             {/* Live Moving Vehicle Marker */}
-            <Marker
-              position={[telemetry.lat, telemetry.lng]}
-              icon={selectedVehicle?.type === 'bike' ? bikeIcon : carIcon}
-            >
-              <Popup className="font-sans text-xs">
-                <strong className="text-slate-900 block">{selectedVehicle ? `${selectedVehicle.name} (${selectedVehicle.trackingId})` : 'GoaRide Vehicle'}</strong>
-                <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h</span><br />
-                <span>Fuel/EV: {telemetry.batteryFuel}%</span>
-              </Popup>
-            </Marker>
+            {!accessDenied && (
+              <Marker
+                position={[telemetry.lat, telemetry.lng]}
+                icon={selectedVehicle?.type === 'bike' ? bikeIcon : carIcon}
+              >
+                <Popup className="font-sans text-xs">
+                  <strong className="text-slate-900 block">{selectedVehicle ? `${selectedVehicle.name} (${selectedVehicle.trackingId})` : 'GoaRide Vehicle'}</strong>
+                  <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h</span><br />
+                  <span>Fuel/EV: {telemetry.batteryFuel}%</span>
+                </Popup>
+              </Marker>
+            )}
           </MapContainer>
         </div>
 
@@ -422,8 +485,12 @@ export default function Tracking() {
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Live Telemetry HUD</span>
-              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-300">
-                Socket.IO Connected
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                accessDenied
+                  ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border-amber-300'
+                  : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border-emerald-300'
+              }`}>
+                {accessDenied ? '🔒 Locked' : 'Socket.IO Active'}
               </span>
             </div>
 
@@ -433,7 +500,7 @@ export default function Tracking() {
                 <Gauge className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Current Vehicle Speed
               </span>
               <div className="text-4xl font-black text-slate-900 dark:text-white">
-                {telemetry.speed} <span className="text-xs text-slate-500 font-bold">km/h</span>
+                {accessDenied ? '--' : telemetry.speed} <span className="text-xs text-slate-500 font-bold">km/h</span>
               </div>
             </div>
 
@@ -441,15 +508,15 @@ export default function Tracking() {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 block font-bold">Latitude</span>
-                <span className="font-extrabold text-slate-900 dark:text-white text-xs">{telemetry.lat.toFixed(4)}</span>
+                <span className="font-extrabold text-slate-900 dark:text-white text-xs">{accessDenied ? '--' : telemetry.lat.toFixed(4)}</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 block font-bold">Longitude</span>
-                <span className="font-extrabold text-slate-900 dark:text-white text-xs">{telemetry.lng.toFixed(4)}</span>
+                <span className="font-extrabold text-slate-900 dark:text-white text-xs">{accessDenied ? '--' : telemetry.lng.toFixed(4)}</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 block font-bold">Fuel / EV Charge</span>
-                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">{telemetry.batteryFuel}%</span>
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">{accessDenied ? '--' : `${telemetry.batteryFuel}%`}</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 block font-bold">Estimated ETA</span>
@@ -460,8 +527,8 @@ export default function Tracking() {
             {/* Active Vehicle Info Badge */}
             {selectedVehicle && (
               <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 space-y-1 text-xs">
-                <span className="text-[10px] font-bold text-sky-700 dark:text-cyan-300 uppercase tracking-wider block">Active Target:</span>
-                <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name} ({selectedVehicle.trackingId})</p>
+                <span className="text-[10px] font-bold text-sky-700 dark:text-cyan-300 uppercase tracking-wider block">Target Details:</span>
+                <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name} (ID: {selectedVehicle.trackingId})</p>
                 <p className="text-[11px] text-slate-500 font-medium">Hub: {selectedVehicle.location} • ₹{selectedVehicle.pricePerDay}/day</p>
               </div>
             )}

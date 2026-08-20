@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import VehicleCard from '../components/VehicleCard';
 import BookingModal from '../components/BookingModal';
-import { Calendar, Heart, User, Star, MapPin, Camera, Upload, Check, Navigation, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar, Heart, User, Star, MapPin, Camera, Upload, Check, Navigation, ShieldCheck, Radio } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Bookings() {
   const { user, updateProfile, uploadAvatar } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('bookings');
   const [bookings, setBookings] = useState([]);
@@ -79,6 +80,12 @@ export default function Bookings() {
     } catch (error) {
       showToast(error.response?.data?.message || 'Failed to cancel booking', 'error');
     }
+  };
+
+  const handleTrackBookedVehicle = (b) => {
+    const trkId = b.trackingId || 'TRK-8901';
+    const vName = b.vehicle?.name || 'Vehicle';
+    navigate(`/tracking?trackingId=${trkId}&name=${encodeURIComponent(vName)}`);
   };
 
   const handleFileChange = async (e) => {
@@ -208,7 +215,7 @@ export default function Bookings() {
             <div className="text-center py-16 glass-panel rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
               <div className="text-4xl">📅</div>
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Active Bookings</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Explore our Goa vehicle fleet and book your first ride!</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Explore our Goa vehicle fleet and book your first ride to enable live tracking!</p>
               <Link to="/vehicles" className="inline-block px-5 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs shadow-md">
                 Browse Fleet →
               </Link>
@@ -230,7 +237,7 @@ export default function Bookings() {
                         </span>
                         <span
                           className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                            b.bookingStatus === 'CONFIRMED'
+                            b.bookingStatus === 'CONFIRMED' || b.bookingStatus === 'ACTIVE'
                               ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
                               : b.bookingStatus === 'CANCELLED'
                               ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30'
@@ -254,15 +261,24 @@ export default function Bookings() {
 
                   <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
                     <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">₹{b.totalAmount}</span>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'N/A'}</span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
 
                     <div className="flex items-center gap-2 pt-1">
+                      {/* TRACK MY BOOKED VEHICLE BUTTON */}
+                      <button
+                        onClick={() => handleTrackBookedVehicle(b)}
+                        className="px-3.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
+                      >
+                        <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
+                        <span>Track My Vehicle 🛰️</span>
+                      </button>
+
                       {b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'COMPLETED' && (
                         <button
                           onClick={() => handleCancelBooking(b._id)}
                           className="px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-xs font-bold hover:bg-rose-200 transition-colors"
                         >
-                          Cancel Booking
+                          Cancel
                         </button>
                       )}
 
