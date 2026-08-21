@@ -1,4 +1,6 @@
 import mongoose from 'mongoose';
+import path from 'path';
+import fs from 'fs';
 import { autoSeedIfEmpty } from '../seed/autoSeed.js';
 
 let mongoMemoryServer = null;
@@ -18,7 +20,7 @@ const connectDB = async () => {
         serverSelectionTimeoutMS: 10000,
       });
 
-      console.log(`✅ Production MongoDB Connected: ${conn.connection.host}`);
+      console.log(`✅ Production MongoDB Atlas Connected: ${conn.connection.host}`);
       await autoSeedIfEmpty();
     } catch (error) {
       console.error(`❌ Production MongoDB Connection Error: ${error.message}`);
@@ -28,32 +30,43 @@ const connectDB = async () => {
     return;
   }
 
-  // Development environment check
-  if (mongoUri) {
-    try {
-      const conn = await mongoose.connect(mongoUri, {
-        serverSelectionTimeoutMS: 3000,
-      });
+  // Development environment check: Try specified MONGO_URI or local MongoDB service first
+  const targetDevUri = mongoUri || 'mongodb://127.0.0.1:27017/goaride';
 
-      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-      await autoSeedIfEmpty();
-      return;
-    } catch (error) {
-      console.log('ℹ️ Specified MONGO_URI failed or local MongoDB not running. Falling back to embedded MongoDB...');
-    }
+  try {
+    const conn = await mongoose.connect(targetDevUri, {
+      serverSelectionTimeoutMS: 2000,
+    });
+
+    console.log(`✅ Persistent MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
+    await autoSeedIfEmpty();
+    return;
+  } catch (error) {
+    console.log('ℹ️ Local MongoDB service not active. Initializing persistent embedded MongoDB server...');
   }
 
-  // Development fallback to MongoMemoryServer
+  // Development fallback to persistent MongoMemoryServer
   try {
-    const { MongoMemoryServer } = await import('mongodb-memory-server');
-    mongoMemoryServer = await MongoMemoryServer.create();
-    const inMemoryUri = mongoMemoryServer.getUri();
+    const devDbDir = path.join(process.cwd(), '.mongo_dev_data');
+    if (!fs.existsSync(devDbDir)) {
+      fs.mkdirSync(devDbDir, { recursive: true });
+    }
 
-    const conn = await mongoose.connect(inMemoryUri);
-    console.log(`✅ Embedded Dev MongoDB Server Connected: ${inMemoryUri}`);
+    const { MongoMemoryServer } = await import('mongodb-memory-server');
+    mongoMemoryServer = await MongoMemoryServer.create({
+      instance: {
+        dbPath: devDbDir,
+        storageEngine: 'wiredTiger',
+      },
+    });
+
+    const persistentDevUri = mongoMemoryServer.getUri();
+    const conn = await mongoose.connect(persistentDevUri);
+
+    console.log(`✅ Embedded Persistent Dev MongoDB Connected at: ${devDbDir}`);
     await autoSeedIfEmpty();
   } catch (memErr) {
-    console.error(`❌ Embedded MongoDB Connection Fatal Error: ${memErr.message}`);
+    console.error(`❌ Embedded MongoDB Connection Error: ${memErr.message}`);
     process.exit(1);
   }
 };

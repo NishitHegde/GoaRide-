@@ -400,11 +400,13 @@ const initialVehicles = [
 
 export const autoSeedIfEmpty = async () => {
   try {
-    console.log('🌱 Auto-seeding initial GoaRide data...');
-    await Location.deleteMany({});
-    await User.deleteMany({});
-    await Vehicle.deleteMany({});
-    await Review.deleteMany({});
+    const existingVehicleCount = await Vehicle.countDocuments();
+    if (existingVehicleCount > 0) {
+      console.log(`ℹ️ MongoDB contains ${existingVehicleCount} existing vehicles. Skipping seed to preserve all user data.`);
+      return;
+    }
+
+    console.log('🌱 Database is empty. Seeding initial GoaRide records into MongoDB...');
 
     await Location.insertMany(initialLocations);
 

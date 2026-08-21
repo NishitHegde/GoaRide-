@@ -3,3 +3,6 @@ node_modules/
 *.zip
 *.zip.downloading
 .env
+.mongo_dev_data/
+server/.mongo_dev_data/
+dist/
