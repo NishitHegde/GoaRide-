@@ -17,20 +17,20 @@ const storage = multer.diskStorage({
 });
 
 function checkFileType(file, cb) {
-  const filetypes = /jpg|jpeg|png|webp|svg/;
+  const filetypes = /jpg|jpeg|png|webp|svg|heic|heif/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+  const mimetype = filetypes.test(file.mimetype) || file.mimetype.startsWith('image/');
 
-  if (extname && mimetype) {
+  if (extname || mimetype) {
     return cb(null, true);
   } else {
-    cb(new Error('Images only! Allowed formats: JPG, JPEG, PNG, WEBP, SVG'));
+    cb(new Error('Images only! Allowed formats: JPG, JPEG, PNG, WEBP, SVG, HEIC'));
   }
 }
 
 export const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit for high-res mobile photos
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   },

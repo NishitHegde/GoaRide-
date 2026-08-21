@@ -92,10 +92,21 @@ export default function Bookings() {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Instant local preview for mobile and desktop photos
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setProfileImage(event.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+
     try {
       setUploadingImage(true);
       const updatedUser = await uploadAvatar(file);
-      setProfileImage(updatedUser.profileImage);
+      if (updatedUser?.profileImage) {
+        setProfileImage(updatedUser.profileImage);
+      }
       setUploadingImage(false);
     } catch (error) {
       setUploadingImage(false);
