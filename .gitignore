@@ -5,4 +5,5 @@ node_modules/
 .env
 .mongo_dev_data/
 server/.mongo_dev_data/
+server/uploads/
 dist/
