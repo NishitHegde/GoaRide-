@@ -260,23 +260,23 @@ export default function Tracking() {
     : fleetVehicles.filter((v) => myBookedVehicleIds.includes(v._id));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
       
-      {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-5">
+      {/* Static Live Vehicle Tracking Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800 pb-5">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-100 dark:bg-orange-950/80 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-extrabold shadow-sm">
             <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
             <span>{isAdmin ? 'Admin Master Vehicle Tracking' : 'Customer Active Booking Tracking'}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
-            {selectedVehicle ? selectedVehicle.name : 'Live Vehicle Tracking'}
+          <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
+            Live Vehicle Tracking
           </h1>
         </div>
 
         <button
           onClick={handleTriggerSos}
-          className={`px-5 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center gap-2 transition-all ${
+          className={`w-full sm:w-auto px-5 py-3 rounded-2xl font-black text-xs shadow-xl flex items-center justify-center gap-2 transition-all ${
             sosActive
               ? 'bg-rose-600 text-white animate-bounce'
               : 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/30 hover:scale-105'
@@ -288,17 +288,17 @@ export default function Tracking() {
       </div>
 
       {/* VEHICLE SELECTION GLASS TOOLBAR */}
-      <div className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xl">
+      <div className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xl">
         
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
           <span className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-1.5">
             <Search className="w-4 h-4" /> Select Vehicle to Track Live Location
           </span>
           {selectedVehicle && (
             <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
               !accessDenied
-                ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border-emerald-300'
-                : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border-amber-300'
+                ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 border-emerald-300'
+                : 'text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 border-amber-300'
             }`}>
               {accessDenied ? '🔒 Booking Required to Track' : selectedVehicle.name}
             </span>
@@ -314,7 +314,7 @@ export default function Tracking() {
               placeholder="Search Vehicle Name..."
               value={trackingInput}
               onChange={(e) => setTrackingInput(e.target.value)}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-bold shadow-sm transition-all"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-bold shadow-sm transition-all"
             />
           </div>
 
@@ -328,7 +328,7 @@ export default function Tracking() {
                 validateAndSetTargetVehicle(found);
               }
             }}
-            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
+            className="w-full sm:w-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
           >
             <option value="">{isAdmin ? '-- Select Any Vehicle (Admin Access) --' : '-- Select My Booked Vehicles --'}</option>
             {trackableVehicles.map((v) => (
@@ -340,7 +340,7 @@ export default function Tracking() {
 
           <button
             type="submit"
-            className="px-6 py-3 bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 dark:from-cyan-500 dark:to-blue-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:from-sky-500 transition-all"
+            className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 dark:from-cyan-500 dark:to-blue-600 text-white font-black text-xs rounded-2xl shadow-lg flex items-center justify-center gap-2 hover:from-sky-500 transition-all"
           >
             <Navigation className="w-4 h-4" />
             <span>Track Vehicle</span>
@@ -349,7 +349,7 @@ export default function Tracking() {
 
         {/* Access Restriction Banner for Standard Users without Booking */}
         {accessDenied && (
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-bold flex items-start justify-between gap-4 shadow-sm">
+          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-start gap-2.5">
               <Lock className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div>
@@ -357,7 +357,7 @@ export default function Tracking() {
                 <span>Customers can only track vehicles with active bookings. Please select one of your booked vehicles or book this vehicle to enable live GPS tracking telemetry.</span>
               </div>
             </div>
-            <Link to="/vehicles" className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-900 font-extrabold rounded-xl shadow text-xs flex-shrink-0">
+            <Link to="/vehicles" className="w-full sm:w-auto px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-900 font-extrabold rounded-xl shadow text-xs text-center flex-shrink-0">
               Book Ride →
             </Link>
           </div>
@@ -366,7 +366,7 @@ export default function Tracking() {
         {/* Route Selector Sub-Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs font-bold">
           <div>
-            <label className="block text-slate-500 dark:text-slate-400 mb-1 text-[10px] uppercase">Starting Point</label>
+            <label className="block text-slate-700 dark:text-slate-300 mb-1 text-[10px] uppercase font-extrabold">Starting Point</label>
             <select
               value={pickupIdx}
               onChange={(e) => {
@@ -383,7 +383,7 @@ export default function Tracking() {
           </div>
 
           <div>
-            <label className="block text-slate-500 dark:text-slate-400 mb-1 text-[10px] uppercase">Destination Point</label>
+            <label className="block text-slate-700 dark:text-slate-300 mb-1 text-[10px] uppercase font-extrabold">Destination Point</label>
             <select
               value={dropIdx}
               onChange={(e) => {
@@ -416,7 +416,7 @@ export default function Tracking() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Leaflet OpenStreetMap Container */}
-        <div className="lg:col-span-2 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-2xl h-[520px] relative">
+        <div className="lg:col-span-2 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-2xl h-[360px] sm:h-[520px] relative">
           
           <div className="absolute top-4 left-4 z-10 glass-panel px-4 py-2 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-xs font-bold flex items-center gap-2 shadow-lg">
             <span className={`w-2.5 h-2.5 rounded-full ${accessDenied ? 'bg-amber-500' : 'bg-emerald-500 animate-ping'}`} />
@@ -474,55 +474,55 @@ export default function Tracking() {
         </div>
 
         {/* Telemetry HUD Panel */}
-        <div className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-6 shadow-2xl flex flex-col justify-between">
+        <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-6 shadow-2xl flex flex-col justify-between">
           
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Live Telemetry HUD</span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                 accessDenied
-                  ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border-amber-300'
-                  : 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border-emerald-300'
+                  ? 'text-amber-800 dark:text-amber-400 bg-amber-100 dark:bg-amber-950 border-amber-300'
+                  : 'text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 border-emerald-300'
               }`}>
                 {accessDenied ? '🔒 Locked' : 'Socket.IO Active'}
               </span>
             </div>
 
-            {/* Key Telemetry Metrics */}
+            {/* Key Telemetry Metrics Grid */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] text-slate-500 block font-bold">Latitude</span>
+              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Latitude</span>
                 <span className="font-extrabold text-slate-900 dark:text-white text-xs">{accessDenied ? '--' : telemetry.lat.toFixed(4)}</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] text-slate-500 block font-bold">Longitude</span>
+              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Longitude</span>
                 <span className="font-extrabold text-slate-900 dark:text-white text-xs">{accessDenied ? '--' : telemetry.lng.toFixed(4)}</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] text-slate-500 block font-bold">Total Distance</span>
-                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">{routeDetails.distanceKm} km</span>
+              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Total Distance</span>
+                <span className="font-extrabold text-emerald-700 dark:text-emerald-400 text-xs">{routeDetails.distanceKm} km</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] text-slate-500 block font-bold">Estimated ETA</span>
-                <span className="font-extrabold text-sky-600 dark:text-cyan-400 text-xs">{routeDetails.durationMins} Mins</span>
+              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Estimated ETA</span>
+                <span className="font-extrabold text-sky-700 dark:text-cyan-400 text-xs">{routeDetails.durationMins} Mins</span>
               </div>
             </div>
 
             {/* Active Vehicle Info Badge */}
             {selectedVehicle && (
               <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 space-y-1 text-xs">
-                <span className="text-[10px] font-bold text-sky-700 dark:text-cyan-300 uppercase tracking-wider block">Target Details:</span>
+                <span className="text-[10px] font-extrabold text-sky-800 dark:text-cyan-300 uppercase tracking-wider block">Target Details:</span>
                 <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name}</p>
-                <p className="text-[11px] text-slate-500 font-medium">Hub: {selectedVehicle.location} • ₹{selectedVehicle.pricePerDay}/day</p>
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold">Hub: {selectedVehicle.location} • ₹{selectedVehicle.pricePerDay}/day</p>
               </div>
             )}
           </div>
 
           <a
             href="tel:+917588459115"
-            className="w-full py-3 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-200 transition-colors shadow-sm"
+            className="w-full py-3 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-black text-xs flex items-center justify-center gap-2 hover:bg-emerald-200 transition-colors shadow-sm"
           >
-            <PhoneCall className="w-4 h-4 text-emerald-600" />
+            <PhoneCall className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <span>Emergency Helpline (+91 75884 59115)</span>
           </a>
 

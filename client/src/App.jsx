@@ -24,7 +24,7 @@ export default function App() {
     <ToastProvider>
       <AuthProvider>
         <Router>
-          <div className="relative min-h-screen flex flex-col bg-[#0b1727] text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden">
+          <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b1727] text-slate-900 dark:text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden transition-colors duration-300">
             {/* Visual Interactive Background & Custom Cursor Effects */}
             <AnimatedBackground />
             <CustomCursor />
