@@ -30,100 +30,90 @@ export default function AnimatedBackground() {
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Generate 45 floating ambient particle nodes
-    const particleCount = Math.min(Math.floor((width * height) / 22000), 55);
-    const particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: Math.random() * 2 + 1.2,
-      alpha: Math.random() * 0.5 + 0.2,
-      pulse: Math.random() * Math.PI * 2,
-    }));
-
-    // Floating Glowing Orbs Data
-    const orbs = [
-      { x: width * 0.2, y: height * 0.2, vx: 0.15, vy: 0.1, radius: 280, color: 'rgba(2, 132, 199, 0.15)' },
-      { x: width * 0.8, y: height * 0.5, vx: -0.1, vy: 0.12, radius: 320, color: 'rgba(6, 182, 212, 0.12)' },
-      { x: width * 0.4, y: height * 0.85, vx: 0.12, vy: -0.15, radius: 300, color: 'rgba(99, 102, 241, 0.12)' },
+    // Color palette from GoaRide UI theme (Neon Cyan, Electric Blue, Soft Indigo, Orange Accent)
+    const neonColors = [
+      { r: 0, g: 210, b: 255, hex: '#00d2ff' },
+      { r: 56, g: 189, b: 248, hex: '#38bdf8' },
+      { r: 99, g: 102, b: 241, hex: '#6366f1' },
+      { r: 249, g: 115, b: 22, hex: '#f97316' },
     ];
 
+    // Responsive particle count (reduced on mobile for high performance)
+    const totalParticles = isTouch
+      ? Math.min(Math.floor((width * height) / 18000), 45)
+      : Math.min(Math.floor((width * height) / 7500), 140);
+
+    const particles = Array.from({ length: totalParticles }, () => {
+      const color = neonColors[Math.floor(Math.random() * neonColors.length)];
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: (Math.random() - 0.5) * 0.45,
+        radius: Math.random() * 2.2 + 1.0,
+        alpha: Math.random() * 0.55 + 0.25,
+        color,
+        pulseSpeed: Math.random() * 0.03 + 0.01,
+        pulseAngle: Math.random() * Math.PI * 2,
+      };
+    });
+
     const render = () => {
-      // Smooth mouse lerp
+      // Smooth mouse position lerp
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
       mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
       ctx.clearRect(0, 0, width, height);
 
-      // Render Floating Glowing Orbs
-      orbs.forEach((orb) => {
-        orb.x += orb.vx;
-        orb.y += orb.vy;
-
-        if (orb.x < -100 || orb.x > width + 100) orb.vx *= -1;
-        if (orb.y < -100 || orb.y > height + 100) orb.vy *= -1;
-
-        // Subtle mouse displacement
-        const dx = (mouse.x - width / 2) * 0.03;
-        const dy = (mouse.y - height / 2) * 0.03;
-
-        const gradient = ctx.createRadialGradient(
-          orb.x + dx,
-          orb.y + dy,
-          0,
-          orb.x + dx,
-          orb.y + dy,
-          orb.radius
-        );
-        gradient.addColorStop(0, orb.color);
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-
-        ctx.fillStyle = gradient;
-        ctx.beginPath();
-        ctx.arc(orb.x + dx, orb.y + dy, orb.radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Update & Render Particles and Constellation Lines
+      // Render Floating Neon Particles
       particles.forEach((p, i) => {
         p.x += p.vx;
         p.y += p.vy;
-        p.pulse += 0.02;
+        p.pulseAngle += p.pulseSpeed;
 
-        if (p.x < 0) p.x = width;
-        if (p.x > width) p.x = 0;
-        if (p.y < 0) p.y = height;
-        if (p.y > height) p.y = 0;
+        // Wrap around screen edges smoothly
+        if (p.x < -10) p.x = width + 10;
+        if (p.x > width + 10) p.x = -10;
+        if (p.y < -10) p.y = height + 10;
+        if (p.y > height + 10) p.y = -10;
 
-        // Mouse proximity reaction
+        // Mouse displacement effect
         const dx = mouse.x - p.x;
         const dy = mouse.y - p.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        let currentRadius = p.radius + Math.sin(p.pulse) * 0.5;
+        let dynamicRadius = p.radius + Math.sin(p.pulseAngle) * 0.6;
 
-        if (dist < 120 && !isTouch) {
-          p.x -= (dx / dist) * 0.6;
-          p.y -= (dy / dist) * 0.6;
-          currentRadius += 0.8;
+        if (dist < 140 && !isTouch) {
+          const force = (140 - dist) / 140;
+          p.x -= (dx / dist) * force * 1.2;
+          p.y -= (dy / dist) * force * 1.2;
+          dynamicRadius += force * 1.5;
         }
 
-        ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
+        const currentAlpha = Math.min(1, Math.max(0.1, p.alpha + Math.sin(p.pulseAngle) * 0.15));
+
+        // Draw Soft Glowing Neon Particle Body
+        ctx.shadowColor = p.color.hex;
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${currentAlpha})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, Math.max(0.5, currentRadius), 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, Math.max(0.6, dynamicRadius), 0, Math.PI * 2);
         ctx.fill();
 
-        // Draw connections between nearby particles
+        // Reset shadow for performance
+        ctx.shadowBlur = 0;
+
+        // Draw connections between nearby neon particles
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const pdx = p.x - p2.x;
           const pdy = p.y - p2.y;
           const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
 
-          if (pdist < 110) {
-            const lineAlpha = (1 - pdist / 110) * 0.15;
-            ctx.strokeStyle = `rgba(56, 189, 248, ${lineAlpha})`;
-            ctx.lineWidth = 0.8;
+          if (pdist < 90) {
+            const lineAlpha = (1 - pdist / 90) * 0.12;
+            ctx.strokeStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${lineAlpha})`;
+            ctx.lineWidth = 0.6;
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
@@ -147,7 +137,7 @@ export default function AnimatedBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0 opacity-60 dark:opacity-40"
+      className="pointer-events-none fixed inset-0 z-0 opacity-75 dark:opacity-65"
     />
   );
 }
