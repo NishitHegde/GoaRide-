@@ -3,6 +3,8 @@ import Booking from '../models/Booking.js';
 import Favorite from '../models/Favorite.js';
 import Review from '../models/Review.js';
 import generateToken from '../utils/generateToken.js';
+import fs from 'fs';
+import path from 'path';
 
 // @desc Get all users (Admin only)
 // @route GET /api/users
@@ -48,12 +50,15 @@ export const updateUserProfile = async (req, res) => {
     user.name = req.body.name || user.name;
     user.email = req.body.email ? req.body.email.toLowerCase().trim() : user.email;
     user.phone = req.body.phone || user.phone;
-    if (req.body.profileImage !== undefined && req.body.profileImage !== '') {
+
+    if (req.body.profileImage !== undefined && req.body.profileImage !== null && req.body.profileImage !== '') {
       user.profileImage = req.body.profileImage;
     }
+
     if (req.body.password) {
       user.password = req.body.password;
     }
+
     if (req.user.role === 'ADMIN' && req.body.role) {
       user.role = req.body.role;
     }
@@ -81,7 +86,19 @@ export const uploadProfileImage = async (req, res) => {
       return res.status(400).json({ message: 'Please upload an image file' });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
+    // Convert uploaded image file directly into a permanent Data URL so it persists permanently in MongoDB & works everywhere
+    let imageUrl = '';
+    if (req.file.path && fs.existsSync(req.file.path)) {
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const mimeType = req.file.mimetype || 'image/jpeg';
+      imageUrl = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+    } else if (req.file.buffer) {
+      const mimeType = req.file.mimetype || 'image/jpeg';
+      imageUrl = `data:${mimeType};base64,${req.file.buffer.toString('base64')}`;
+    } else {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
     const user = await User.findById(req.user._id);
 
     if (user) {
