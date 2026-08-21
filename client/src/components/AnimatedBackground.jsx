@@ -30,33 +30,60 @@ export default function AnimatedBackground() {
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
 
-    // Color palette from GoaRide UI theme (Neon Cyan, Electric Blue, Soft Indigo, Orange Accent)
-    const neonColors = [
-      { r: 0, g: 210, b: 255, hex: '#00d2ff' },
-      { r: 56, g: 189, b: 248, hex: '#38bdf8' },
-      { r: 99, g: 102, b: 241, hex: '#6366f1' },
-      { r: 249, g: 115, b: 22, hex: '#f97316' },
+    // GoaRide Theme Neon Star Color Palette
+    const starColors = [
+      { r: 0, g: 210, b: 255, hex: '#00d2ff' },   // Neon Cyan
+      { r: 56, g: 189, b: 248, hex: '#38bdf8' },  // Sky Blue
+      { r: 99, g: 102, b: 241, hex: '#6366f1' },  // Electric Indigo
+      { r: 249, g: 115, b: 22, hex: '#f97316' },  // Vibrant Orange
+      { r: 255, g: 255, b: 255, hex: '#ffffff' }, // Pure Diamond White
     ];
 
-    // Responsive particle count (reduced on mobile for high performance)
-    const totalParticles = isTouch
-      ? Math.min(Math.floor((width * height) / 18000), 45)
-      : Math.min(Math.floor((width * height) / 7500), 140);
+    // Responsive Star Count (50 on mobile, 130 on desktop for 60 FPS performance)
+    const starCount = isTouch
+      ? Math.min(Math.floor((width * height) / 16000), 50)
+      : Math.min(Math.floor((width * height) / 7000), 130);
 
-    const particles = Array.from({ length: totalParticles }, () => {
-      const color = neonColors[Math.floor(Math.random() * neonColors.length)];
+    const stars = Array.from({ length: starCount }, () => {
+      const color = starColors[Math.floor(Math.random() * starColors.length)];
       return {
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.45,
-        vy: (Math.random() - 0.5) * 0.45,
-        radius: Math.random() * 2.2 + 1.0,
-        alpha: Math.random() * 0.55 + 0.25,
+        vx: (Math.random() - 0.5) * 1.6, // Fast-moving dynamic speed
+        vy: (Math.random() - 0.5) * 1.6,
+        radius: Math.random() < 0.25 ? Math.random() * 1.8 + 2.0 : Math.random() * 1.2 + 0.8, // Tiny & larger glowing stars
+        baseAlpha: Math.random() * 0.45 + 0.5,
         color,
-        pulseSpeed: Math.random() * 0.03 + 0.01,
-        pulseAngle: Math.random() * Math.PI * 2,
+        twinkleSpeed: Math.random() * 0.05 + 0.02,
+        twinkleAngle: Math.random() * Math.PI * 2,
       };
     });
+
+    // Shooting Star / Streak Manager
+    let shootingStars = [];
+
+    const createShootingStar = () => {
+      const startX = Math.random() * width;
+      const startY = Math.random() * (height * 0.5);
+      const length = Math.random() * 80 + 60;
+      const speed = Math.random() * 8 + 6;
+      const angle = Math.PI / 4 + (Math.random() - 0.5) * 0.2; // 45 degree tilt
+      const color = starColors[Math.floor(Math.random() * (starColors.length - 1))];
+
+      shootingStars.push({
+        x: startX,
+        y: startY,
+        length,
+        speed,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        color,
+        life: 1.0,
+        decay: Math.random() * 0.025 + 0.015,
+      });
+    };
+
+    let shootingStarTimer = 0;
 
     const render = () => {
       // Smooth mouse position lerp
@@ -65,61 +92,86 @@ export default function AnimatedBackground() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Render Floating Neon Particles
-      particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.pulseAngle += p.pulseSpeed;
+      // Periodically spawn shooting stars
+      shootingStarTimer++;
+      if (shootingStarTimer % 180 === 0 && Math.random() > 0.3) {
+        createShootingStar();
+      }
+
+      // Render Fast-Moving Bright Neon Starfield
+      stars.forEach((star) => {
+        star.x += star.vx;
+        star.y += star.vy;
+        star.twinkleAngle += star.twinkleSpeed;
 
         // Wrap around screen edges smoothly
-        if (p.x < -10) p.x = width + 10;
-        if (p.x > width + 10) p.x = -10;
-        if (p.y < -10) p.y = height + 10;
-        if (p.y > height + 10) p.y = -10;
+        if (star.x < -15) star.x = width + 15;
+        if (star.x > width + 15) star.x = -15;
+        if (star.y < -15) star.y = height + 15;
+        if (star.y > height + 15) star.y = -15;
 
         // Mouse displacement effect
-        const dx = mouse.x - p.x;
-        const dy = mouse.y - p.y;
+        const dx = mouse.x - star.x;
+        const dy = mouse.y - star.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        let dynamicRadius = p.radius + Math.sin(p.pulseAngle) * 0.6;
+        let dynamicRadius = star.radius;
 
-        if (dist < 140 && !isTouch) {
-          const force = (140 - dist) / 140;
-          p.x -= (dx / dist) * force * 1.2;
-          p.y -= (dy / dist) * force * 1.2;
-          dynamicRadius += force * 1.5;
+        if (dist < 130 && !isTouch) {
+          const force = (130 - dist) / 130;
+          star.x -= (dx / dist) * force * 1.5;
+          star.y -= (dy / dist) * force * 1.5;
+          dynamicRadius += force * 1.2;
         }
 
-        const currentAlpha = Math.min(1, Math.max(0.1, p.alpha + Math.sin(p.pulseAngle) * 0.15));
+        // Star Twinkle & Flickering Calculation
+        const currentAlpha = Math.min(
+          1,
+          Math.max(0.2, star.baseAlpha + Math.sin(star.twinkleAngle) * 0.35)
+        );
 
-        // Draw Soft Glowing Neon Particle Body
-        ctx.shadowColor = p.color.hex;
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${currentAlpha})`;
+        // Draw Bright Neon Star Core & Glow
+        ctx.shadowColor = star.color.hex;
+        ctx.shadowBlur = dynamicRadius > 2.5 ? 16 : 10;
+        ctx.fillStyle = `rgba(${star.color.r}, ${star.color.g}, ${star.color.b}, ${currentAlpha})`;
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, Math.max(0.6, dynamicRadius), 0, Math.PI * 2);
+        ctx.arc(star.x, star.y, Math.max(0.6, dynamicRadius), 0, Math.PI * 2);
         ctx.fill();
 
-        // Reset shadow for performance
         ctx.shadowBlur = 0;
+      });
 
-        // Draw connections between nearby neon particles
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const pdx = p.x - p2.x;
-          const pdy = p.y - p2.y;
-          const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+      // Render Shooting Stars / Streaks
+      shootingStars.forEach((s, idx) => {
+        s.x += s.vx;
+        s.y += s.vy;
+        s.life -= s.decay;
 
-          if (pdist < 90) {
-            const lineAlpha = (1 - pdist / 90) * 0.12;
-            ctx.strokeStyle = `rgba(${p.color.r}, ${p.color.g}, ${p.color.b}, ${lineAlpha})`;
-            ctx.lineWidth = 0.6;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-          }
+        if (s.life <= 0 || s.x > width || s.y > height) {
+          shootingStars.splice(idx, 1);
+          return;
         }
+
+        const headX = s.x;
+        const headY = s.y;
+        const tailX = s.x - s.vx * (s.length / s.speed);
+        const tailY = s.y - s.vy * (s.length / s.speed);
+
+        const gradient = ctx.createLinearGradient(tailX, tailY, headX, headY);
+        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+        gradient.addColorStop(0.7, `rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.life * 0.6})`);
+        gradient.addColorStop(1, `rgba(255, 255, 255, ${s.life * 0.95})`);
+
+        ctx.shadowColor = s.color.hex;
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(headX, headY);
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
       });
 
       animationFrameId = requestAnimationFrame(render);
@@ -137,7 +189,7 @@ export default function AnimatedBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none fixed inset-0 z-0 opacity-75 dark:opacity-65"
+      className="pointer-events-none fixed inset-0 z-0 opacity-85 dark:opacity-75"
     />
   );
 }
