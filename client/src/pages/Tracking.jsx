@@ -196,7 +196,7 @@ export default function Tracking() {
     const query = trackingInput.trim().toLowerCase();
 
     if (!query) {
-      showToast('Please enter a Tracking ID (e.g. TRK-8901)', 'info');
+      showToast('Please enter a vehicle name or select a vehicle', 'info');
       return;
     }
 
@@ -210,12 +210,12 @@ export default function Tracking() {
     if (found) {
       validateAndSetTargetVehicle(found);
       if (isAdmin || myBookedVehicleIds.includes(found._id)) {
-        showToast(`🎯 Tracking vehicle: ${found.name} (${found.trackingId})`, 'success');
+        showToast(`🎯 Tracking vehicle: ${found.name}`, 'success');
       } else {
         showToast(`🔒 Access Restricted: You can only track vehicles you have booked.`, 'error');
       }
     } else {
-      showToast(`No vehicle found with Tracking ID "${trackingInput}".`, 'error');
+      showToast(`No vehicle found matching "${trackingInput}".`, 'error');
     }
   };
 
@@ -270,7 +270,7 @@ export default function Tracking() {
             <span>{isAdmin ? 'Admin Master Vehicle Tracking' : 'Customer Active Booking Tracking'}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
-            {selectedVehicle ? `Tracking ID: ${selectedVehicle.trackingId} (${selectedVehicle.name})` : 'Live Vehicle Tracking'}
+            {selectedVehicle ? selectedVehicle.name : 'Live Vehicle Tracking'}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
             {isAdmin
@@ -292,12 +292,12 @@ export default function Tracking() {
         </button>
       </div>
 
-      {/* TRACKING ID INPUT GLASS TOOLBAR */}
+      {/* VEHICLE SELECTION GLASS TOOLBAR */}
       <div className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xl">
         
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
           <span className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-1.5">
-            <Search className="w-4 h-4" /> Enter Tracking ID to Track Vehicle
+            <Search className="w-4 h-4" /> Select Vehicle to Track Live Location
           </span>
           {selectedVehicle && (
             <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
@@ -305,7 +305,7 @@ export default function Tracking() {
                 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 border-emerald-300'
                 : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 border-amber-300'
             }`}>
-              {accessDenied ? '🔒 Booking Required to Track' : `Tracking ID: ${selectedVehicle.trackingId}`}
+              {accessDenied ? '🔒 Booking Required to Track' : selectedVehicle.name}
             </span>
           )}
         </div>
@@ -316,7 +316,7 @@ export default function Tracking() {
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
             <input
               type="text"
-              placeholder="Enter Vehicle Tracking ID (e.g. TRK-8901, TRK-8902)..."
+              placeholder="Search Vehicle Name..."
               value={trackingInput}
               onChange={(e) => setTrackingInput(e.target.value)}
               className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-bold shadow-sm transition-all"
@@ -338,7 +338,7 @@ export default function Tracking() {
             <option value="">{isAdmin ? '-- Select Any Vehicle (Admin Access) --' : '-- Select My Booked Vehicles --'}</option>
             {trackableVehicles.map((v) => (
               <option key={v._id} value={v.trackingId}>
-                {v.trackingId} — {v.name} ({v.location})
+                {v.name} ({v.location})
               </option>
             ))}
           </select>
@@ -371,7 +371,7 @@ export default function Tracking() {
         {/* Route Selector Sub-Row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs font-bold">
           <div>
-            <label className="block text-slate-500 dark:text-slate-400 mb-1 text-[10px] uppercase">Pickup Point</label>
+            <label className="block text-slate-500 dark:text-slate-400 mb-1 text-[10px] uppercase">Starting Point</label>
             <select
               value={pickupIdx}
               onChange={(e) => {
@@ -388,7 +388,7 @@ export default function Tracking() {
           </div>
 
           <div>
-            <label className="block text-slate-500 dark:text-slate-400 mb-1 text-[10px] uppercase">Drop Destination</label>
+            <label className="block text-slate-500 dark:text-slate-400 mb-1 text-[10px] uppercase">Destination Point</label>
             <select
               value={dropIdx}
               onChange={(e) => {
@@ -429,7 +429,7 @@ export default function Tracking() {
               {accessDenied
                 ? '🔒 Permission Restricted (Booking Required)'
                 : selectedVehicle
-                ? `Tracking ID: ${selectedVehicle.trackingId} (${selectedVehicle.name})`
+                ? selectedVehicle.name
                 : 'Live OpenStreetMap GPS Stream'}
             </span>
           </div>
@@ -447,18 +447,18 @@ export default function Tracking() {
               <Polyline positions={routePolyline} color="#0284c7" weight={6} opacity={0.8} dashArray="2, 8" />
             )}
 
-            {/* Pickup Marker */}
+            {/* Starting Point Marker */}
             <Marker position={[pickupPoint.lat, pickupPoint.lng]} icon={pickupMarkerIcon}>
               <Popup className="font-sans text-xs">
-                <strong className="text-sky-600 block">Pickup Location</strong>
+                <strong className="text-sky-600 block">Starting Point</strong>
                 <span>{pickupPoint.name}</span>
               </Popup>
             </Marker>
 
-            {/* Drop Marker */}
+            {/* Destination Point Marker */}
             <Marker position={[dropPoint.lat, dropPoint.lng]} icon={dropMarkerIcon}>
               <Popup className="font-sans text-xs">
-                <strong className="text-rose-600 block">Drop Location</strong>
+                <strong className="text-rose-600 block">Destination Point</strong>
                 <span>{dropPoint.name}</span>
               </Popup>
             </Marker>
@@ -470,7 +470,7 @@ export default function Tracking() {
                 icon={selectedVehicle?.type === 'bike' ? bikeIcon : carIcon}
               >
                 <Popup className="font-sans text-xs">
-                  <strong className="text-slate-900 block">{selectedVehicle ? `${selectedVehicle.name} (${selectedVehicle.trackingId})` : 'GoaRide Vehicle'}</strong>
+                  <strong className="text-slate-900 block">{selectedVehicle ? selectedVehicle.name : 'GoaRide Vehicle'}</strong>
                   <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h</span><br />
                   <span>Fuel/EV: {telemetry.batteryFuel}%</span>
                 </Popup>
@@ -528,7 +528,7 @@ export default function Tracking() {
             {selectedVehicle && (
               <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 space-y-1 text-xs">
                 <span className="text-[10px] font-bold text-sky-700 dark:text-cyan-300 uppercase tracking-wider block">Target Details:</span>
-                <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name} (ID: {selectedVehicle.trackingId})</p>
+                <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name}</p>
                 <p className="text-[11px] text-slate-500 font-medium">Hub: {selectedVehicle.location} • ₹{selectedVehicle.pricePerDay}/day</p>
               </div>
             )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import BookingModal from '../components/BookingModal';
-import { Star, MapPin, Fuel, Gauge, Users, ShieldCheck, Heart, ArrowLeft, CheckCircle2, Radio } from 'lucide-react';
+import { Star, MapPin, Fuel, Gauge, Users, ShieldCheck, Heart, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -55,12 +55,6 @@ export default function VehicleDetails() {
       showToast(data.message, 'success');
     } catch (error) {
       showToast('Failed to update favorite', 'error');
-    }
-  };
-
-  const handleTrackVehicle = () => {
-    if (vehicle) {
-      navigate(`/tracking?vehicleId=${vehicle._id}&name=${encodeURIComponent(vehicle.name)}&location=${encodeURIComponent(vehicle.location)}`);
     }
   };
 
@@ -163,29 +157,19 @@ export default function VehicleDetails() {
             </div>
           )}
 
-          {/* Pricing & Dual Action Buttons */}
+          {/* Pricing & Booking Button */}
           <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
             <div>
               <span className="text-3xl font-black text-slate-900 dark:text-white">₹{vehicle.pricePerDay}</span>
               <span className="text-xs text-slate-500 font-medium"> / 24 hours</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleTrackVehicle}
-                className="px-4 py-3.5 bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 font-extrabold text-xs rounded-2xl border border-orange-300 dark:border-orange-500/40 flex items-center gap-1.5 transition-all shadow-sm"
-              >
-                <Radio className="w-4 h-4 text-orange-600 dark:text-orange-400 animate-pulse" />
-                <span>Track Live Location</span>
-              </button>
-
-              <button
-                onClick={() => setBookingModalOpen(true)}
-                className="px-6 py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 text-white font-bold text-sm rounded-2xl shadow-md shadow-sky-600/20 transition-all"
-              >
-                Book Now →
-              </button>
-            </div>
+            <button
+              onClick={() => setBookingModalOpen(true)}
+              className="px-8 py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 text-white font-bold text-sm rounded-2xl shadow-md shadow-sky-600/20 transition-all"
+            >
+              Book Now →
+            </button>
           </div>
 
         </div>
