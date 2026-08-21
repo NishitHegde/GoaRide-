@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Navigation, Radio, AlertTriangle, Gauge, PhoneCall, Route, Car, Search, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
+import { MapPin, Navigation, Radio, AlertTriangle, PhoneCall, Route, Car, Search, ShieldCheck, Lock, CheckCircle2 } from 'lucide-react';
 
 const bikeIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
@@ -272,11 +272,6 @@ export default function Tracking() {
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
             {selectedVehicle ? selectedVehicle.name : 'Live Vehicle Tracking'}
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
-            {isAdmin
-              ? 'Admin Mode: Track all fleet vehicles live across Goa'
-              : 'Customer Mode: Track your booked vehicle live GPS stream'}
-          </p>
         </div>
 
         <button
@@ -471,8 +466,7 @@ export default function Tracking() {
               >
                 <Popup className="font-sans text-xs">
                   <strong className="text-slate-900 block">{selectedVehicle ? selectedVehicle.name : 'GoaRide Vehicle'}</strong>
-                  <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h</span><br />
-                  <span>Fuel/EV: {telemetry.batteryFuel}%</span>
+                  <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h</span>
                 </Popup>
               </Marker>
             )}
@@ -494,16 +488,6 @@ export default function Tracking() {
               </span>
             </div>
 
-            {/* Speedometer Gauge */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-500/10 via-blue-500/5 to-transparent border border-sky-500/30 text-center space-y-1">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block flex items-center justify-center gap-1">
-                <Gauge className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Current Vehicle Speed
-              </span>
-              <div className="text-4xl font-black text-slate-900 dark:text-white">
-                {accessDenied ? '--' : telemetry.speed} <span className="text-xs text-slate-500 font-bold">km/h</span>
-              </div>
-            </div>
-
             {/* Key Telemetry Metrics */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
@@ -515,8 +499,8 @@ export default function Tracking() {
                 <span className="font-extrabold text-slate-900 dark:text-white text-xs">{accessDenied ? '--' : telemetry.lng.toFixed(4)}</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] text-slate-500 block font-bold">Fuel / EV Charge</span>
-                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">{accessDenied ? '--' : `${telemetry.batteryFuel}%`}</span>
+                <span className="text-[10px] text-slate-500 block font-bold">Total Distance</span>
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">{routeDetails.distanceKm} km</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-500 block font-bold">Estimated ETA</span>
