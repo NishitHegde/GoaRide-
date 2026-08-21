@@ -5,6 +5,8 @@ import { ToastProvider } from './context/ToastContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AnimatedBackground from './components/AnimatedBackground';
+import CustomCursor from './components/CustomCursor';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
 import Home from './pages/Home';
@@ -22,10 +24,14 @@ export default function App() {
     <ToastProvider>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen flex flex-col bg-[#0b1727] text-slate-100 font-['Plus_Jakarta_Sans',sans-serif]">
+          <div className="relative min-h-screen flex flex-col bg-[#0b1727] text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden">
+            {/* Visual Interactive Background & Custom Cursor Effects */}
+            <AnimatedBackground />
+            <CustomCursor />
+
             <Navbar />
             
-            <main className="flex-grow">
+            <main className="flex-grow z-10 relative">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/vehicles" element={<Vehicles />} />
