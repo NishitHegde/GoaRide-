@@ -394,16 +394,7 @@ export default function Bookings() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs text-slate-700 dark:text-slate-300 mb-1 font-bold">Or Enter Custom Image URL</label>
-            <input
-              type="text"
-              placeholder="https://images.unsplash.com/photo-..."
-              value={profileImage}
-              onChange={(e) => setProfileImage(e.target.value)}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none"
-            />
-          </div>
+
 
           <div>
             <label className="block text-xs text-slate-700 dark:text-slate-300 mb-1 font-bold">Full Name</label>
