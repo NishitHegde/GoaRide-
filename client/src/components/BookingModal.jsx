@@ -16,7 +16,6 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
   const [step, setStep] = useState(1);
 
   const [pickupLocation, setPickupLocation] = useState(vehicle?.location || 'Calangute');
-  const [dropLocation, setDropLocation] = useState(vehicle?.location || 'Calangute');
   const [pickupDate, setPickupDate] = useState(todayStr);
   const [returnDate, setReturnDate] = useState(tomorrowStr);
   const [pickupTime, setPickupTime] = useState('10:00 AM');
@@ -104,7 +103,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
       const { data: booking } = await API.post('/bookings', {
         vehicleId: vehicle._id,
         pickupLocation,
-        dropLocation,
+        dropLocation: pickupLocation,
         pickupDate,
         returnDate,
         pickupTime,
@@ -189,37 +188,20 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
               </div>
             )}
 
-            {/* Locations */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Pickup Location
-                </label>
-                <select
-                  value={pickupLocation}
-                  onChange={(e) => setPickupLocation(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500"
-                >
-                  {locationsList.map((loc) => (
-                    <option key={loc} value={loc}>{loc}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Drop Location
-                </label>
-                <select
-                  value={dropLocation}
-                  onChange={(e) => setDropLocation(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500"
-                >
-                  {locationsList.map((loc) => (
-                    <option key={loc} value={loc}>{loc}</option>
-                  ))}
-                </select>
-              </div>
+            {/* Pickup Location */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Pickup Location
+              </label>
+              <select
+                value={pickupLocation}
+                onChange={(e) => setPickupLocation(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium"
+              >
+                {locationsList.map((loc) => (
+                  <option key={loc} value={loc}>{loc}</option>
+                ))}
+              </select>
             </div>
 
             {/* Dates & Time */}
@@ -253,11 +235,13 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Pickup Time</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Pickup Time
+                </label>
                 <select
                   value={pickupTime}
                   onChange={(e) => setPickupTime(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium"
                 >
                   <option>09:00 AM</option>
                   <option>10:00 AM</option>
