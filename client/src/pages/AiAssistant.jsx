@@ -10,6 +10,10 @@ export default function AiAssistant() {
 
   const [activeMode, setActiveMode] = useState('chat'); // 'chat' | 'fuel' | 'budget'
 
+  // Fleet Vehicles state for Fuel Matrix
+  const [fleetVehicles, setFleetVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
+
   // Chat State
   const [messages, setMessages] = useState([
     {
@@ -26,7 +30,6 @@ export default function AiAssistant() {
 
   // Fuel Estimator Interactive Tool State
   const [fuelRoute, setFuelRoute] = useState('dudhsagar');
-  const [fuelVehicleType, setFuelVehicleType] = useState('scooter');
   const [customDistance, setCustomDistance] = useState(82);
 
   // Budget Planner State
@@ -49,18 +52,68 @@ export default function AiAssistant() {
   };
 
   useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      const { data } = await API.get('/vehicles');
+      const list = Array.isArray(data) ? data : (data?.value || []);
+      setFleetVehicles(list);
+      if (list.length > 0) {
+        setSelectedVehicleId(list[0]._id);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const calculateFuelDetails = () => {
+  // Dynamic Fuel & Mileage calculation for ALL vehicles in fleet
+  const calculateVehicleFuelDetails = () => {
     const selectedRoute = routesMap[fuelRoute];
-    const km = fuelRoute === 'custom' ? Number(customDistance) : selectedRoute.km;
-    
-    let mileage = fuelVehicleType === 'scooter' ? 45 : fuelVehicleType === 'cruiser' ? 35 : fuelVehicleType === 'car' ? 14 : 9;
-    let liters = (km / mileage).toFixed(1);
-    let cost = Math.round(liters * 98);
+    const km = fuelRoute === 'custom' ? Number(customDistance) || 1 : selectedRoute.km;
 
-    return { km, liters, cost, mileage };
+    const targetVehicle = fleetVehicles.find((v) => v._id === selectedVehicleId) || fleetVehicles[0];
+
+    let mileage = 45; // Default scooter mileage
+    let unit = 'Liters';
+    let unitPrice = 98; // Petrol ₹98/L in Goa
+
+    if (targetVehicle) {
+      const vName = targetVehicle.name.toLowerCase();
+      const vType = targetVehicle.type?.toLowerCase();
+
+      if (vName.includes('ev') || vName.includes('chetak') || vName.includes('nexon ev')) {
+        mileage = 7; // km per kWh
+        unit = 'kWh';
+        unitPrice = 12; // EV Charging ₹12/kWh
+      } else if (vType === 'bike') {
+        if (vName.includes('classic') || vName.includes('enfield') || vName.includes('himalayan')) {
+          mileage = 35;
+        } else if (vName.includes('r15') || vName.includes('duke')) {
+          mileage = 38;
+        } else {
+          mileage = 45; // Activa, Dio, Jupiter
+        }
+      } else if (vType === 'car') {
+        if (vName.includes('thar') || vName.includes('innova') || vName.includes('fortuner')) {
+          mileage = 9;
+        } else if (vName.includes('creta') || vName.includes('venue') || vName.includes('brezza')) {
+          mileage = 13;
+        } else {
+          mileage = 16; // Swift, Baleno, i20
+        }
+      }
+    }
+
+    const consumption = (km / mileage).toFixed(1);
+    const cost = Math.round(consumption * unitPrice);
+
+    return { km, consumption, cost, mileage, unit, unitPrice, targetVehicle };
   };
 
   const handleSend = async (queryText) => {
@@ -106,10 +159,10 @@ export default function AiAssistant() {
     setTimeout(() => setCopiedIdx(null), 2000);
   };
 
-  const fuelCalc = calculateFuelDetails();
+  const fuelCalc = calculateVehicleFuelDetails();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 relative">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 relative">
       
       {/* Background Ambient Glows */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-teal-500/10 dark:bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
@@ -123,12 +176,12 @@ export default function AiAssistant() {
           <span>GoaRide Neural AI Assistant v2.0</span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
           Intelligent <span className="text-gradient">Travel Concierge</span>
         </h1>
 
-        <p className="text-slate-600 dark:text-slate-300 text-sm max-w-xl mx-auto font-medium leading-relaxed">
-          Ask questions, calculate route fuel expenses, and generate custom trip itineraries powered by real-time Goa fleet data.
+        <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-xl mx-auto font-medium leading-relaxed">
+          Ask questions, calculate route fuel expenses for all fleet vehicles, and generate custom trip itineraries.
         </p>
       </div>
 
@@ -189,7 +242,7 @@ export default function AiAssistant() {
           </div>
 
           {/* Luxury Glass Chat Console Container */}
-          <div className="glass-panel rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col h-[540px] shadow-2xl relative">
+          <div className="glass-panel rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col h-[520px] shadow-2xl relative">
             
             {/* Console Header Bar */}
             <div className="p-4 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-[#070e1b]/70 backdrop-blur-md flex items-center justify-between">
@@ -314,16 +367,16 @@ export default function AiAssistant() {
         </div>
       )}
 
-      {/* MODE 2: INTERACTIVE FUEL MATRIX */}
+      {/* MODE 2: ALL-VEHICLE DYNAMIC FUEL MATRIX */}
       {activeMode === 'fuel' && (
-        <div className="glass-panel p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 space-y-6 shadow-2xl text-slate-900 dark:text-white relative">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 space-y-6 shadow-2xl text-slate-900 dark:text-white relative">
           <div className="flex items-center gap-3.5 border-b border-slate-200 dark:border-slate-800 pb-4">
             <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/30">
               <Fuel className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-black">Goa Route Fuel Matrix</h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Select your route and vehicle category to view instant fuel consumption and cost telemetry.</p>
+              <h2 className="text-2xl font-black">Goa Route Fuel Matrix ({fleetVehicles.length} Vehicles Matrix)</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Select any vehicle from your fleet to calculate route distance, exact mileage, consumption, and fuel cost telemetry.</p>
             </div>
           </div>
 
@@ -333,7 +386,7 @@ export default function AiAssistant() {
               <select
                 value={fuelRoute}
                 onChange={(e) => setFuelRoute(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm font-bold"
               >
                 <option value="dudhsagar">Calangute ➔ Dudhsagar Waterfalls (82 km)</option>
                 <option value="palolem">Panaji ➔ Palolem Beach (70 km)</option>
@@ -351,34 +404,63 @@ export default function AiAssistant() {
                   max="500"
                   value={customDistance}
                   onChange={(e) => setCustomDistance(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm font-bold"
                 />
               </div>
             )}
 
-            <div>
-              <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Vehicle Category:</label>
+            <div className="sm:col-span-2">
+              <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Fleet Vehicle (All Vehicles Included):</label>
               <select
-                value={fuelVehicleType}
-                onChange={(e) => setFuelVehicleType(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm"
+                value={selectedVehicleId}
+                onChange={(e) => setSelectedVehicleId(e.target.value)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm font-bold"
               >
-                <option value="scooter">Automatic Scooter (Activa 6G - ~45 km/l)</option>
-                <option value="cruiser">Cruiser Bike (Classic 350 - ~35 km/l)</option>
-                <option value="car">Hatchback / Compact Car (Swift / Baleno - ~14 km/l)</option>
-                <option value="suv">Open-top 4x4 SUV (Mahindra Thar - ~9 km/l)</option>
+                {fleetVehicles.map((v) => (
+                  <option key={v._id} value={v._id}>
+                    {v.type === 'bike' ? '🏍️' : '🚗'} {v.name} ({v.location}) — ₹{v.pricePerDay}/day
+                  </option>
+                ))}
               </select>
             </div>
           </div>
+
+          {/* Selected Vehicle Feature Highlight Card */}
+          {fuelCalc.targetVehicle && (
+            <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-4">
+                <img
+                  src={fuelCalc.targetVehicle.image}
+                  alt={fuelCalc.targetVehicle.name}
+                  className="w-16 h-16 object-cover rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md"
+                />
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 dark:text-cyan-400 block">Selected Vehicle</span>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">{fuelCalc.targetVehicle.name}</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+                    Hub: {fuelCalc.targetVehicle.location} • ₹{fuelCalc.targetVehicle.pricePerDay}/day • Estimated Efficiency: ~{fuelCalc.mileage} {fuelCalc.unit === 'kWh' ? 'km/kWh' : 'km/L'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedVehicle(fuelCalc.targetVehicle)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 dark:from-cyan-500 dark:to-blue-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 hover:scale-105 transition-transform"
+              >
+                <span>Book This Ride</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Visual Telemetry Metric Cards */}
           <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/30 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-amber-500" /> Fuel Telemetry Result
+                <Flame className="w-4 h-4 text-amber-500" /> Fuel Telemetry Matrix Result
               </span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                Goa Petrol Price: ₹98/L
+                {fuelCalc.unit === 'kWh' ? 'EV Rate: ₹12/kWh' : 'Goa Petrol Rate: ₹98/L'}
               </span>
             </div>
 
@@ -389,12 +471,12 @@ export default function AiAssistant() {
               </div>
 
               <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Fuel Consumption</span>
-                <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{fuelCalc.liters} <span className="text-sm">Liters</span></span>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Consumption</span>
+                <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{fuelCalc.consumption} <span className="text-sm">{fuelCalc.unit}</span></span>
               </div>
 
               <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Est. Fuel Cost</span>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Est. Trip Expense</span>
                 <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">₹{fuelCalc.cost}</span>
               </div>
             </div>
