@@ -233,67 +233,72 @@ export default function Bookings() {
             </div>
           ) : (
             <div className="space-y-4">
-              {bookings.map((b) => (
-                <div key={b._id} className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between shadow-md">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={b.vehicle?.image}
-                      alt={b.vehicle?.name}
-                      className="w-20 h-20 object-cover rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"
-                    />
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                          #{b.bookingNumber}
-                        </span>
-                        <span
-                          className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                            b.bookingStatus === 'CONFIRMED' || b.bookingStatus === 'ACTIVE'
-                              ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
-                              : b.bookingStatus === 'CANCELLED'
-                              ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30'
-                              : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
-                          }`}
-                        >
-                          {b.bookingStatus}
-                        </span>
+              {bookings.map((b) => {
+                const currentStatus = (b.bookingStatus || b.status || '').toUpperCase();
+                const isCancelled = currentStatus === 'CANCELLED' || currentStatus === 'CANCELED';
+                const isCompleted = currentStatus === 'COMPLETED';
+
+                return (
+                  <div key={b._id} className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between shadow-md">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={b.vehicle?.image}
+                        alt={b.vehicle?.name}
+                        className="w-20 h-20 object-cover rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"
+                      />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                            #{b.bookingNumber}
+                          </span>
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                              currentStatus === 'CONFIRMED' || currentStatus === 'ACTIVE'
+                                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
+                                : isCancelled
+                                ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30'
+                                : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
+                            }`}
+                          >
+                            {currentStatus || 'PENDING'}
+                          </span>
+                        </div>
+
+                        <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">{b.vehicle?.name}</h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
+                          <span>Pickup: {b.pickupLocation} ({b.pickupTime})</span>
+                        </p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                          Dates: {new Date(b.pickupDate).toLocaleDateString()} → {new Date(b.returnDate).toLocaleDateString()} ({b.duration} days)
+                        </p>
                       </div>
-
-                      <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">{b.vehicle?.name}</h3>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
-                        <span>Pickup: {b.pickupLocation} ({b.pickupTime})</span>
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                        Dates: {new Date(b.pickupDate).toLocaleDateString()} → {new Date(b.returnDate).toLocaleDateString()} ({b.duration} days)
-                      </p>
                     </div>
-                  </div>
 
-                  <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
-                    <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">₹{b.totalAmount}</span>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
+                    <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
+                      <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">₹{b.totalAmount}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
 
-                    <div className="flex items-center gap-2 pt-1">
-                      {/* TRACK MY BOOKED VEHICLE BUTTON (Only for active bookings) */}
-                      {b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'Cancelled' && (
-                        <button
-                          onClick={() => handleTrackBookedVehicle(b)}
-                          className="px-3.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
-                        >
-                          <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
-                          <span>Track My Vehicle 🛰️</span>
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2 pt-1">
+                        {/* TRACK MY BOOKED VEHICLE BUTTON (Only for active non-cancelled bookings) */}
+                        {!isCancelled && (
+                          <button
+                            onClick={() => handleTrackBookedVehicle(b)}
+                            className="px-3.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
+                          >
+                            <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
+                            <span>Track My Vehicle 🛰️</span>
+                          </button>
+                        )}
 
-                      {b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'COMPLETED' && (
-                        <button
-                          onClick={() => handleCancelBooking(b._id)}
-                          className="px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-xs font-bold hover:bg-rose-200 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      )}
+                        {!isCancelled && !isCompleted && (
+                          <button
+                            onClick={() => handleCancelBooking(b._id)}
+                            className="px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-xs font-bold hover:bg-rose-200 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        )}
 
                       <button
                         onClick={() => setReviewBooking(b)}
@@ -305,7 +310,8 @@ export default function Bookings() {
                   </div>
 
                 </div>
-              ))}
+              );
+            })}
             </div>
           )}
         </div>
