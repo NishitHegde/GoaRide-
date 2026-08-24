@@ -176,14 +176,56 @@ export default function Tracking() {
     }
   };
 
+  const locationCoordinates = {
+    'panaji': { lat: 15.4989, lng: 73.8278 },
+    'calangute': { lat: 15.5438, lng: 73.7554 },
+    'baga': { lat: 15.5553, lng: 73.7517 },
+    'anjuna': { lat: 15.5847, lng: 73.7439 },
+    'vagator': { lat: 15.6028, lng: 73.7381 },
+    'mapusa': { lat: 15.5925, lng: 73.8167 },
+    'margao': { lat: 15.2736, lng: 73.9582 },
+    'vasco': { lat: 15.3949, lng: 73.8153 },
+    'dabolim airport': { lat: 15.3808, lng: 73.8314 },
+    'dabolim': { lat: 15.3808, lng: 73.8314 },
+    'colva': { lat: 15.2784, lng: 73.9145 },
+    'candolim': { lat: 15.5178, lng: 73.7628 },
+    'porvorim': { lat: 15.5333, lng: 73.8333 },
+    'morjim': { lat: 15.6311, lng: 73.7339 },
+    'arambol': { lat: 15.6869, lng: 73.7042 },
+    'dudhsagar': { lat: 15.3144, lng: 74.3143 },
+  };
+
   const updateVehicleGps = (veh) => {
-    const matchedSpot = goaHotspots.find((h) => h.name.toLowerCase().includes(veh.location.toLowerCase()));
-    const targetLat = matchedSpot ? matchedSpot.lat : 15.5438;
-    const targetLng = matchedSpot ? matchedSpot.lng : 73.7554;
+    const locKey = (veh?.location || '').toLowerCase().trim();
+    
+    let targetLat = 15.5438;
+    let targetLng = 73.7554;
+
+    if (veh?.latitude && veh?.longitude) {
+      targetLat = veh.latitude;
+      targetLng = veh.longitude;
+    } else {
+      const matchedKey = Object.keys(locationCoordinates).find(
+        (k) => locKey.includes(k) || k.includes(locKey)
+      );
+      if (matchedKey) {
+        targetLat = locationCoordinates[matchedKey].lat;
+        targetLng = locationCoordinates[matchedKey].lng;
+      } else {
+        const matchedSpot = goaHotspots.find((h) => h.name.toLowerCase().includes(locKey) || locKey.includes(h.name.toLowerCase()));
+        if (matchedSpot) {
+          targetLat = matchedSpot.lat;
+          targetLng = matchedSpot.lng;
+        }
+      }
+    }
+
+    // Micro offset based on vehicle ID so multiple vehicles at the same hub don't overlap exactly
+    const hashOffset = ((veh?._id ? veh._id.charCodeAt(veh._id.length - 1) : 5) % 10) * 0.0012;
 
     setTelemetry({
-      lat: targetLat,
-      lng: targetLng,
+      lat: targetLat + hashOffset,
+      lng: targetLng + hashOffset,
       speed: Math.floor(35 + Math.random() * 20),
       heading: 90,
       batteryFuel: Math.floor(82 + Math.random() * 15),
