@@ -437,7 +437,7 @@ export default function Tracking() {
             >
               <Popup className="font-sans text-xs">
                 <strong className="text-slate-900 block">{selectedVehicle ? selectedVehicle.name : 'GoaRide Vehicle'}</strong>
-                <span className="text-emerald-600 font-bold">Speed: {telemetry.speed} km/h • Fuel: {telemetry.batteryFuel}%</span>
+                <span className="text-emerald-600 font-bold">GPS Location Active</span>
               </Popup>
             </Marker>
           </MapContainer>
@@ -448,13 +448,13 @@ export default function Tracking() {
           
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-              <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Live Telemetry & Fuel HUD</span>
+              <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">Live Telemetry HUD</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 border-emerald-300">
                 Socket.IO Active
               </span>
             </div>
 
-            {/* Key Telemetry Metrics Grid with Fuel Level Matrix */}
+            {/* Key Telemetry Metrics Grid */}
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">GPS Stream Status</span>
@@ -464,13 +464,9 @@ export default function Tracking() {
                 <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Total Distance</span>
                 <span className="font-extrabold text-emerald-700 dark:text-emerald-400 text-xs">{routeDetails.distanceKm} km</span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 col-span-2">
                 <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Estimated ETA</span>
                 <span className="font-extrabold text-sky-700 dark:text-cyan-400 text-xs">{routeDetails.durationMins} Mins</span>
-              </div>
-              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Live Speed</span>
-                <span className="font-extrabold text-slate-900 dark:text-white text-xs">{telemetry.speed} km/h</span>
               </div>
             </div>
 
