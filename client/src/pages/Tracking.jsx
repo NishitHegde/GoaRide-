@@ -133,12 +133,19 @@ export default function Tracking() {
 
       setFleetVehicles(processed);
 
-      // Fetch customer's active bookings if logged in
+      // Fetch customer's active (non-cancelled) bookings if logged in
       let bookedIds = [];
       if (user) {
         try {
           const { data: bData } = await API.get('/bookings/my');
-          bookedIds = Array.isArray(bData) ? bData.map((b) => b.vehicle?._id || b.vehicle) : [];
+          bookedIds = Array.isArray(bData)
+            ? bData
+                .filter((b) => {
+                  const st = (b.bookingStatus || b.status || '').toUpperCase();
+                  return st !== 'CANCELLED';
+                })
+                .map((b) => b.vehicle?._id || b.vehicle)
+            : [];
           setMyBookedVehicleIds(bookedIds);
         } catch (bErr) {
           console.error(bErr);

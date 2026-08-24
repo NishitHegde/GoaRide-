@@ -275,14 +275,16 @@ export default function Bookings() {
                     <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
 
                     <div className="flex items-center gap-2 pt-1">
-                      {/* TRACK MY BOOKED VEHICLE BUTTON */}
-                      <button
-                        onClick={() => handleTrackBookedVehicle(b)}
-                        className="px-3.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
-                      >
-                        <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
-                        <span>Track My Vehicle 🛰️</span>
-                      </button>
+                      {/* TRACK MY BOOKED VEHICLE BUTTON (Only for active bookings) */}
+                      {b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'Cancelled' && (
+                        <button
+                          onClick={() => handleTrackBookedVehicle(b)}
+                          className="px-3.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
+                        >
+                          <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
+                          <span>Track My Vehicle 🛰️</span>
+                        </button>
+                      )}
 
                       {b.bookingStatus !== 'CANCELLED' && b.bookingStatus !== 'COMPLETED' && (
                         <button
