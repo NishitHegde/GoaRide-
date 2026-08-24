@@ -145,16 +145,18 @@ export default function Tracking() {
         }
       }
 
-      // Check initial target tracking ID
-      const targetId = urlTrackingId || 'TRK-8901';
-      const found = processed.find(
-        (v) => v.trackingId?.toLowerCase() === targetId.toLowerCase() || v.name.toLowerCase().includes(urlVehicleName.toLowerCase())
-      );
+      // Check initial target tracking ID from URL or customer booked vehicle
+      const targetVehicle = urlTrackingId
+        ? processed.find(
+            (v) => v.trackingId?.toLowerCase() === urlTrackingId.toLowerCase() || (urlVehicleName && v.name.toLowerCase().includes(urlVehicleName.toLowerCase()))
+          )
+        : (bookedIds.length > 0 ? processed.find((v) => bookedIds.includes(v._id)) : null);
 
-      if (found) {
-        validateAndSetTargetVehicle(found);
+      if (targetVehicle) {
+        validateAndSetTargetVehicle(targetVehicle, bookedIds);
       } else if (processed.length > 0) {
-        validateAndSetTargetVehicle(processed[0]);
+        const defaultVeh = processed.find((v) => v.name.toLowerCase().includes('activa')) || processed[0];
+        validateAndSetTargetVehicle(defaultVeh, bookedIds);
       }
     } catch (error) {
       console.error(error);
@@ -515,7 +517,7 @@ export default function Tracking() {
             {/* Active Vehicle Info Badge */}
             {selectedVehicle && (
               <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 space-y-1 text-xs">
-                <span className="text-[10px] font-extrabold text-sky-800 dark:text-cyan-300 uppercase tracking-wider block">Target Vehicle Matrix:</span>
+                <span className="text-[10px] font-extrabold text-sky-800 dark:text-cyan-300 uppercase tracking-wider block">Track Your Vehicle:</span>
                 <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name}</p>
                 <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold">Hub: {selectedVehicle.location} • ₹{selectedVehicle.pricePerDay}/day</p>
               </div>
