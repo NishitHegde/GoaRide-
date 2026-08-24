@@ -446,11 +446,9 @@ export default function Tracking() {
 
             {/* Key Telemetry Metrics Grid with Fuel Level Matrix */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60">
-                <span className="text-[10px] text-amber-700 dark:text-amber-400 block font-extrabold flex items-center gap-1">
-                  <Fuel className="w-3 h-3" /> Fuel / EV Level
-                </span>
-                <span className="font-black text-amber-700 dark:text-amber-300 text-sm">{telemetry.batteryFuel}%</span>
+              <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">GPS Stream Status</span>
+                <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">Online Stream</span>
               </div>
               <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-extrabold">Total Distance</span>

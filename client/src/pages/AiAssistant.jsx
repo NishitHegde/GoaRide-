@@ -425,33 +425,7 @@ export default function AiAssistant() {
             </div>
           </div>
 
-          {/* Selected Vehicle Feature Highlight Card */}
-          {fuelCalc.targetVehicle && (
-            <div className="p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
-              <div className="flex items-center gap-4">
-                <img
-                  src={fuelCalc.targetVehicle.image}
-                  alt={fuelCalc.targetVehicle.name}
-                  className="w-16 h-16 object-cover rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md"
-                />
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 dark:text-cyan-400 block">Selected Vehicle</span>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white">{fuelCalc.targetVehicle.name}</h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
-                    Hub: {fuelCalc.targetVehicle.location} • ₹{fuelCalc.targetVehicle.pricePerDay}/day • Estimated Efficiency: ~{fuelCalc.mileage} {fuelCalc.unit === 'kWh' ? 'km/kWh' : 'km/L'}
-                  </p>
-                </div>
-              </div>
 
-              <button
-                onClick={() => setSelectedVehicle(fuelCalc.targetVehicle)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 dark:from-cyan-500 dark:to-blue-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 hover:scale-105 transition-transform"
-              >
-                <span>Book This Ride</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
 
           {/* Visual Telemetry Metric Cards */}
           <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/30 space-y-4 shadow-xl">
