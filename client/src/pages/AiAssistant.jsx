@@ -10,6 +10,10 @@ export default function AiAssistant() {
 
   const [activeMode, setActiveMode] = useState('chat'); // 'chat' | 'fuel' | 'budget'
 
+  // Fleet Vehicles state for Fuel Matrix
+  const [fleetVehicles, setFleetVehicles] = useState([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
+
   // Chat State
   const [messages, setMessages] = useState([
     {
@@ -26,7 +30,6 @@ export default function AiAssistant() {
 
   // Fuel Estimator Interactive Tool State
   const [fuelRoute, setFuelRoute] = useState('dudhsagar');
-  const [fuelVehicleType, setFuelVehicleType] = useState('scooter');
   const [customDistance, setCustomDistance] = useState(82);
 
   // Budget Planner State
@@ -49,18 +52,68 @@ export default function AiAssistant() {
   };
 
   useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      const { data } = await API.get('/vehicles');
+      const list = Array.isArray(data) ? data : (data?.value || []);
+      setFleetVehicles(list);
+      if (list.length > 0) {
+        setSelectedVehicleId(list[0]._id);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const calculateFuelDetails = () => {
+  // Dynamic Fuel & Mileage calculation for ALL vehicles in fleet
+  const calculateVehicleFuelDetails = () => {
     const selectedRoute = routesMap[fuelRoute];
     const km = fuelRoute === 'custom' ? Number(customDistance) || 1 : selectedRoute.km;
 
-    let mileage = fuelVehicleType === 'scooter' ? 45 : fuelVehicleType === 'cruiser' ? 35 : fuelVehicleType === 'car' ? 14 : 9;
-    let liters = (km / mileage).toFixed(1);
-    let cost = Math.round(liters * 98);
+    const targetVehicle = fleetVehicles.find((v) => v._id === selectedVehicleId) || fleetVehicles[0];
 
-    return { km, liters, cost, mileage };
+    let mileage = 45; // Default scooter mileage
+    let unit = 'Liters';
+    let unitPrice = 98; // Petrol ₹98/L in Goa
+
+    if (targetVehicle) {
+      const vName = targetVehicle.name.toLowerCase();
+      const vType = targetVehicle.type?.toLowerCase();
+
+      if (vName.includes('ev') || vName.includes('chetak') || vName.includes('nexon ev')) {
+        mileage = 7; // km per kWh
+        unit = 'kWh';
+        unitPrice = 12; // EV Charging ₹12/kWh
+      } else if (vType === 'bike') {
+        if (vName.includes('classic') || vName.includes('enfield') || vName.includes('himalayan')) {
+          mileage = 35;
+        } else if (vName.includes('r15') || vName.includes('duke')) {
+          mileage = 38;
+        } else {
+          mileage = 45; // Activa, Dio, Jupiter
+        }
+      } else if (vType === 'car') {
+        if (vName.includes('thar') || vName.includes('innova') || vName.includes('fortuner')) {
+          mileage = 9;
+        } else if (vName.includes('creta') || vName.includes('venue') || vName.includes('brezza')) {
+          mileage = 13;
+        } else {
+          mileage = 16; // Swift, Baleno, i20
+        }
+      }
+    }
+
+    const consumption = (km / mileage).toFixed(1);
+    const cost = Math.round(consumption * unitPrice);
+
+    return { km, consumption, cost, mileage, unit, unitPrice, targetVehicle };
   };
 
   const handleSend = async (queryText) => {
@@ -106,7 +159,7 @@ export default function AiAssistant() {
     setTimeout(() => setCopiedIdx(null), 2000);
   };
 
-  const fuelCalc = calculateFuelDetails();
+  const fuelCalc = calculateVehicleFuelDetails();
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 relative">
@@ -128,7 +181,7 @@ export default function AiAssistant() {
         </h1>
 
         <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-xl mx-auto font-medium leading-relaxed">
-          Ask questions, calculate route fuel expenses, and generate custom trip itineraries.
+          Ask questions, calculate route fuel expenses for all fleet vehicles, and generate custom trip itineraries.
         </p>
       </div>
 
@@ -314,7 +367,7 @@ export default function AiAssistant() {
         </div>
       )}
 
-      {/* MODE 2: INTERACTIVE FUEL MATRIX */}
+      {/* MODE 2: ALL-VEHICLE DYNAMIC FUEL MATRIX */}
       {activeMode === 'fuel' && (
         <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 space-y-6 shadow-2xl text-slate-900 dark:text-white relative">
           <div className="flex items-center gap-3.5 border-b border-slate-200 dark:border-slate-800 pb-4">
@@ -322,8 +375,8 @@ export default function AiAssistant() {
               <Fuel className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-black">Goa Route Fuel Matrix</h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Select your route and vehicle category to view instant fuel consumption and cost telemetry.</p>
+              <h2 className="text-2xl font-black">Goa Route Fuel Matrix ({fleetVehicles.length} Vehicles Matrix)</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Select any vehicle from your fleet to calculate route distance, exact mileage, consumption, and fuel cost telemetry.</p>
             </div>
           </div>
 
@@ -356,17 +409,18 @@ export default function AiAssistant() {
               </div>
             )}
 
-            <div>
-              <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Vehicle Category:</label>
+            <div className="sm:col-span-2">
+              <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Fleet Vehicle (All Vehicles Included):</label>
               <select
-                value={fuelVehicleType}
-                onChange={(e) => setFuelVehicleType(e.target.value)}
+                value={selectedVehicleId}
+                onChange={(e) => setSelectedVehicleId(e.target.value)}
                 className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm font-bold"
               >
-                <option value="scooter">Automatic Scooter (Activa 6G - ~45 km/l)</option>
-                <option value="cruiser">Cruiser Bike (Classic 350 - ~35 km/l)</option>
-                <option value="car">Hatchback / Compact Car (Swift / Baleno - ~14 km/l)</option>
-                <option value="suv">Open-top 4x4 SUV (Mahindra Thar - ~9 km/l)</option>
+                {fleetVehicles.map((v) => (
+                  <option key={v._id} value={v._id}>
+                    {v.type === 'bike' ? '🏍️' : '🚗'} {v.name} ({v.location}) — ₹{v.pricePerDay}/day
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -375,10 +429,10 @@ export default function AiAssistant() {
           <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/30 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-amber-500" /> Fuel Telemetry Result
+                <Flame className="w-4 h-4 text-amber-500" /> Fuel Telemetry Matrix Result
               </span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                Goa Petrol Price: ₹98/L
+                {fuelCalc.unit === 'kWh' ? 'EV Rate: ₹12/kWh' : 'Goa Petrol Rate: ₹98/L'}
               </span>
             </div>
 
@@ -389,12 +443,12 @@ export default function AiAssistant() {
               </div>
 
               <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Fuel Consumption</span>
-                <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{fuelCalc.liters} <span className="text-sm">Liters</span></span>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Consumption</span>
+                <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{fuelCalc.consumption} <span className="text-sm">{fuelCalc.unit}</span></span>
               </div>
 
               <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-1">
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Est. Fuel Cost</span>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Est. Trip Expense</span>
                 <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">₹{fuelCalc.cost}</span>
               </div>
             </div>

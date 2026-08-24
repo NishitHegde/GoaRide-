@@ -161,11 +161,19 @@ export default function Tracking() {
     }
   };
 
-  const validateAndSetTargetVehicle = (veh) => {
-    setSelectedVehicle(veh);
-    setTrackingInput(veh.trackingId);
-    setAccessDenied(false);
-    updateVehicleGps(veh);
+  const validateAndSetTargetVehicle = (veh, bookedIds = myBookedVehicleIds) => {
+    const userHasBooking = bookedIds.includes(veh._id);
+
+    if (isAdmin || userHasBooking) {
+      setSelectedVehicle(veh);
+      setTrackingInput(veh.trackingId);
+      setAccessDenied(false);
+      updateVehicleGps(veh);
+    } else {
+      setSelectedVehicle(veh);
+      setTrackingInput(veh.trackingId);
+      setAccessDenied(true);
+    }
   };
 
   const updateVehicleGps = (veh) => {
@@ -242,8 +250,10 @@ export default function Tracking() {
   const pickupPoint = goaHotspots[pickupIdx];
   const dropPoint = goaHotspots[dropIdx];
 
-  // All fleet vehicles available for tracking & fuel telemetry matrix
-  const trackableVehicles = fleetVehicles;
+  // Vehicles available for tracking based on role (booked vehicles for customers, all for admin)
+  const trackableVehicles = isAdmin
+    ? fleetVehicles
+    : fleetVehicles.filter((v) => myBookedVehicleIds.includes(v._id));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
