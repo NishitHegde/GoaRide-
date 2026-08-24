@@ -330,7 +330,7 @@ export default function Tracking() {
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
           <span className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-1.5">
-            <Search className="w-4 h-4" /> Select Vehicle Matrix ({fleetVehicles.length} Vehicles Available)
+            <Search className="w-4 h-4" /> Track Your Vehicle
           </span>
           {selectedVehicle && (
             <span className="text-xs font-bold px-3 py-1 rounded-full border text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 border-emerald-300">
