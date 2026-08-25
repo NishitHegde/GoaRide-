@@ -161,9 +161,9 @@ export default function Tracking() {
 
       if (targetVehicle) {
         validateAndSetTargetVehicle(targetVehicle, bookedIds);
-      } else if (processed.length > 0) {
-        const defaultVeh = processed.find((v) => v.name.toLowerCase().includes('activa')) || processed[0];
-        validateAndSetTargetVehicle(defaultVeh, bookedIds);
+      } else {
+        setSelectedVehicle(null);
+        setAccessDenied(true);
       }
     } catch (error) {
       console.error(error);
@@ -171,16 +171,22 @@ export default function Tracking() {
   };
 
   const validateAndSetTargetVehicle = (veh, bookedIds = myBookedVehicleIds) => {
+    if (!veh) {
+      setSelectedVehicle(null);
+      setAccessDenied(true);
+      return;
+    }
+
     const userHasBooking = bookedIds.includes(veh._id);
 
     if (isAdmin || userHasBooking) {
       setSelectedVehicle(veh);
-      setTrackingInput(veh.trackingId);
+      setTrackingInput(veh.trackingId || '');
       setAccessDenied(false);
       updateVehicleGps(veh);
     } else {
-      setSelectedVehicle(veh);
-      setTrackingInput(veh.trackingId);
+      setSelectedVehicle(null);
+      setTrackingInput(veh.trackingId || '');
       setAccessDenied(true);
     }
   };
@@ -509,16 +515,18 @@ export default function Tracking() {
               </Popup>
             </Marker>
 
-            {/* Live Moving Vehicle Marker */}
-            <Marker
-              position={[telemetry.lat, telemetry.lng]}
-              icon={selectedVehicle?.type === 'bike' ? bikeIcon : carIcon}
-            >
-              <Popup className="font-sans text-xs">
-                <strong className="text-slate-900 block">{selectedVehicle ? selectedVehicle.name : 'GoaRide Vehicle'}</strong>
-                <span className="text-emerald-600 font-bold">GPS Location Active</span>
-              </Popup>
-            </Marker>
+            {/* Live Moving Vehicle Marker (Only for valid active booked vehicle) */}
+            {selectedVehicle && !accessDenied && (
+              <Marker
+                position={[telemetry.lat, telemetry.lng]}
+                icon={selectedVehicle.type === 'bike' ? bikeIcon : carIcon}
+              >
+                <Popup className="font-sans text-xs">
+                  <strong className="text-slate-900 block">{selectedVehicle.name}</strong>
+                  <span className="text-emerald-600 font-bold">Live GPS Telemetry Active</span>
+                </Popup>
+              </Marker>
+            )}
           </MapContainer>
         </div>
 
