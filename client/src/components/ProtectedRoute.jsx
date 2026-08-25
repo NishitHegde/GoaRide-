@@ -16,10 +16,12 @@ export const AdminRoute = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-cyan-400 font-bold">Loading Admin...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-amber-500 font-extrabold text-xs">Loading Admin Console...</div>;
   }
 
-  const isAdmin = user && (user.role?.toUpperCase() === 'ADMIN' || (user.email && user.email.toLowerCase().includes('admin')));
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  return isAdmin ? <Outlet /> : <Navigate to="/" replace />;
+  return <Outlet />;
 };

@@ -81,7 +81,7 @@ export default function Navbar() {
               </Link>
             )}
 
-            {(user?.role?.toUpperCase() === 'ADMIN' || (user?.email && user.email.toLowerCase().includes('admin'))) && (
+            {user && (
               <Link
                 to="/admin"
                 className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
