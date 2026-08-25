@@ -100,8 +100,8 @@ export default function VehicleDetails() {
           
           <div className="space-y-2">
             <span className="text-xs font-black text-sky-600 dark:text-cyan-400 uppercase tracking-wide">{vehicle.brand}</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">{vehicle.name}</h1>
-            <div className="flex items-center gap-3 text-xs font-medium text-slate-600 dark:text-slate-400">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">{vehicle.name}</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-medium text-slate-600 dark:text-slate-400">
               <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-500" /> {vehicle.rating} ({vehicle.reviewCount} reviews)
               </span>
@@ -112,7 +112,7 @@ export default function VehicleDetails() {
             </div>
           </div>
 
-          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed font-medium">
+          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
             {vehicle.description}
           </p>
 
@@ -149,7 +149,7 @@ export default function VehicleDetails() {
               <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-900 dark:text-slate-200">
                 {vehicle.features.map((feat, idx) => (
                   <div key={idx} className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     <span>{feat}</span>
                   </div>
                 ))}
@@ -158,15 +158,15 @@ export default function VehicleDetails() {
           )}
 
           {/* Pricing & Booking Button */}
-          <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
+          <div className="p-4 sm:p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
             <div>
-              <span className="text-3xl font-black text-slate-900 dark:text-white">₹{vehicle.pricePerDay}</span>
+              <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">₹{vehicle.pricePerDay}</span>
               <span className="text-xs text-slate-500 font-medium"> / 24 hours</span>
             </div>
 
             <button
               onClick={() => setBookingModalOpen(true)}
-              className="px-8 py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 text-white font-bold text-sm rounded-2xl shadow-md shadow-sky-600/20 transition-all"
+              className="px-5 sm:px-8 py-3 sm:py-3.5 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md shadow-sky-600/20 transition-all"
             >
               Book Now →
             </button>

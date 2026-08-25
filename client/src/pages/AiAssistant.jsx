@@ -190,7 +190,7 @@ export default function AiAssistant() {
           <span>GoaRide Neural AI Assistant v2.0</span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
           Intelligent <span className="text-gradient">Travel Concierge</span>
         </h1>
 

@@ -114,7 +114,7 @@ export default function Home() {
             <span>🌴 AI Powered Goa Vehicle Rentals</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
             Explore <span className="text-gradient">Goa</span><br />Your Way
           </h1>
 

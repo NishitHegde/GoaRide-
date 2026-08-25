@@ -239,20 +239,20 @@ export default function Bookings() {
                 const isCompleted = currentStatus === 'COMPLETED';
 
                 return (
-                  <div key={b._id} className="glass-panel p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between shadow-md">
-                    <div className="flex items-center gap-4">
+                  <div key={b._id} className="glass-panel p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center justify-between shadow-md">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <img
                         src={b.vehicle?.image}
                         alt={b.vehicle?.name}
-                        className="w-20 h-20 object-cover rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"
+                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex-shrink-0"
                       />
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                          <span className="text-[11px] sm:text-xs font-black px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                             #{b.bookingNumber}
                           </span>
                           <span
-                            className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                            className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md ${
                               currentStatus === 'CONFIRMED' || currentStatus === 'ACTIVE'
                                 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
                                 : isCancelled
@@ -264,20 +264,20 @@ export default function Bookings() {
                           </span>
                         </div>
 
-                        <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">{b.vehicle?.name}</h3>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 font-medium">
-                          <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
+                        <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white leading-tight">{b.vehicle?.name}</h3>
+                        <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400 flex-shrink-0" />
                           <span>Pickup: {b.pickupLocation} ({b.pickupTime})</span>
                         </p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                        <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 font-medium">
                           Dates: {new Date(b.pickupDate).toLocaleDateString()} → {new Date(b.returnDate).toLocaleDateString()} ({b.duration} days)
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
-                      <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">₹{b.totalAmount}</span>
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
+                    <div className="flex flex-col sm:items-end gap-1.5 sm:gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-800">
+                      <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-cyan-400">₹{b.totalAmount}</span>
+                      <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
 
                       <div className="flex items-center gap-2 pt-1">
                         {/* TRACK MY BOOKED VEHICLE BUTTON (Only for active non-cancelled bookings) */}
