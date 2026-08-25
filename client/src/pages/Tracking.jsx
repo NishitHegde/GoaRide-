@@ -265,8 +265,14 @@ export default function Tracking() {
     );
 
     if (found) {
+      const userHasBooking = myBookedVehicleIds.includes(found._id);
       validateAndSetTargetVehicle(found);
-      showToast(`🎯 Tracking vehicle: ${found.name}`, 'success');
+
+      if (isAdmin || userHasBooking) {
+        showToast(`🎯 Tracking vehicle: ${found.name}`, 'success');
+      } else {
+        showToast(`🔒 Access Restricted: Active booking required to track ${found.name}`, 'error');
+      }
     } else {
       showToast(`No vehicle found matching "${trackingInput}".`, 'error');
     }
