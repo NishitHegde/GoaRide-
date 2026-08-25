@@ -87,7 +87,6 @@ export default function AdminDashboard() {
     return () => {
       socket.off('master-telemetry-update');
       socket.off('admin-sos-alert');
-      if (playbackIntervalRef.current) clearInterval(playbackIntervalRef.current);
       socket.disconnect();
     };
   }, []);
