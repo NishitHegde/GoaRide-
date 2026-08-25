@@ -358,22 +358,22 @@ export default function AiAssistant() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input Bar */}
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#070e1b]/90 backdrop-blur-md flex gap-3">
+            {/* Mobile-Friendly Input Bar */}
+            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-2.5 sm:p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#070e1b]/90 backdrop-blur-md flex items-center gap-2 sm:gap-3">
               <input
                 type="text"
-                placeholder="Ask AI anything about Goa rentals, routes, fuel, or beach plans..."
+                placeholder="Ask AI about Goa rentals, routes, beaches..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="flex-grow bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-600 dark:focus:border-teal-500 font-medium shadow-inner transition-all"
+                className="flex-grow min-w-0 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-600 dark:focus:border-teal-500 font-medium shadow-inner transition-all"
               />
               <button
                 type="submit"
-                disabled={loading}
-                className="px-6 py-3 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-500 text-white font-extrabold text-sm rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-teal-600/25 disabled:opacity-50"
+                disabled={loading || !input.trim()}
+                className="px-3.5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-lg shadow-teal-600/25 disabled:opacity-50 flex-shrink-0"
               >
-                <span>Send</span>
-                <Send className="w-4 h-4" />
+                <span className="hidden sm:inline">Send</span>
+                <Send className="w-4 h-4 text-white" />
               </button>
             </form>
 
