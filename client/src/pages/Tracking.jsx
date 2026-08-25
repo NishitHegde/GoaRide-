@@ -347,7 +347,7 @@ export default function Tracking() {
           <span className="text-xs font-black uppercase tracking-wider text-sky-600 dark:text-cyan-400 flex items-center gap-1.5">
             <Search className="w-4 h-4" /> Track Your Vehicle
           </span>
-          {selectedVehicle && (
+          {selectedVehicle && !accessDenied && (
             <span className="text-xs font-bold px-3 py-1 rounded-full border text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 border-emerald-300">
               {selectedVehicle.name} ({selectedVehicle.location})
             </span>
@@ -482,7 +482,7 @@ export default function Tracking() {
           <div className="absolute top-4 left-4 z-10 glass-panel px-4 py-2 rounded-2xl border border-slate-200/80 dark:border-slate-700 text-xs font-bold flex items-center gap-2 shadow-lg">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
             <span className="text-slate-900 dark:text-white">
-              {selectedVehicle ? selectedVehicle.name : 'Live OpenStreetMap GPS Stream'}
+              {selectedVehicle && !accessDenied ? selectedVehicle.name : 'Live OpenStreetMap GPS Stream'}
             </span>
           </div>
 
@@ -557,12 +557,17 @@ export default function Tracking() {
               </div>
             </div>
 
-            {/* Active Vehicle Info Badge */}
-            {selectedVehicle && (
+            {/* Active Vehicle Info Badge (Only when vehicle is booked & unlocked) */}
+            {selectedVehicle && !accessDenied ? (
               <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 space-y-1 text-xs">
                 <span className="text-[10px] font-extrabold text-sky-800 dark:text-cyan-300 uppercase tracking-wider block">Track Your Vehicle:</span>
                 <p className="font-black text-slate-900 dark:text-white">{selectedVehicle.name}</p>
                 <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold">Hub: {selectedVehicle.location} • ₹{selectedVehicle.pricePerDay}/day</p>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 space-y-1 text-xs">
+                <span className="text-[10px] font-extrabold text-amber-800 dark:text-amber-300 uppercase tracking-wider block">Vehicle Tracking Status:</span>
+                <p className="font-bold text-amber-900 dark:text-amber-200">No Active Booking Unlocked</p>
               </div>
             )}
           </div>
