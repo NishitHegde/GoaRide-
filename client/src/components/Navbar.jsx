@@ -170,22 +170,99 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-[#070e1b] border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-3">
-          <Link to="/vehicles" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Fleet</Link>
-          <Link to="/tracking" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Live Map</Link>
-          <Link to="/ai-assistant" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">AI Trip Bot</Link>
-          {user && <Link to="/bookings" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">My Bookings</Link>}
-          {user?.role === 'ADMIN' && <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Admin Console</Link>}
+        <div className="md:hidden bg-white/95 dark:bg-[#070e1b]/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 pt-3 pb-6 space-y-3 shadow-2xl animate-in slide-in-from-top-2 duration-200">
+          
+          {user && (
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-2">
+              <img
+                src={user.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'}
+                alt={user.name}
+                className="w-10 h-10 rounded-full border-2 border-sky-600 object-cover"
+              />
+              <div className="flex-grow">
+                <span className="font-extrabold text-xs text-slate-900 dark:text-white block">{user.name}</span>
+                <span className="text-[10px] text-slate-500 font-bold block">{user.email}</span>
+              </div>
+            </div>
+          )}
+
+          <Link
+            to="/vehicles"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold text-slate-800 dark:text-slate-200 transition-colors"
+          >
+            <Car className="w-4 h-4 text-sky-600 dark:text-cyan-400" />
+            <span>Goa Fleet</span>
+          </Link>
+
+          <Link
+            to="/tracking"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold text-slate-800 dark:text-slate-200 transition-colors"
+          >
+            <MapPin className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <span>Live Vehicle Tracking</span>
+          </Link>
+
+          <Link
+            to="/ai-assistant"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold text-slate-800 dark:text-slate-200 transition-colors"
+          >
+            <Bot className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <span>AI Trip Concierge</span>
+          </Link>
+
+          {user && (
+            <Link
+              to="/bookings"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold text-slate-800 dark:text-slate-200 transition-colors"
+            >
+              <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <span>My Bookings & Profile</span>
+            </Link>
+          )}
+
+          {user?.role === 'ADMIN' && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-sm font-bold text-amber-900 dark:text-amber-300 transition-colors"
+            >
+              <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>Admin Console</span>
+            </Link>
+          )}
 
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
             {user ? (
-              <button onClick={handleLogout} className="w-full py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold text-xs">
-                Logout ({user.name})
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full py-3 rounded-xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold text-xs flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout ({user.name.split(' ')[0]})</span>
               </button>
             ) : (
-              <div className="flex gap-2">
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="flex-1 py-2.5 text-center rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs text-slate-700 dark:text-slate-200">Login</Link>
-                <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="flex-1 py-2.5 text-center rounded-xl bg-sky-600 font-bold text-xs text-white">Register</Link>
+              <div className="flex gap-2.5 pt-1">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-3 text-center rounded-xl bg-slate-100 dark:bg-slate-800 font-bold text-xs text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-3 text-center rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 font-bold text-xs text-white shadow-md"
+                >
+                  Register
+                </Link>
               </div>
             )}
           </div>
