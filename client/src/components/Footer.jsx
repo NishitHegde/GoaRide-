@@ -5,7 +5,7 @@ import { PhoneCall } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="relative border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-100/90 dark:bg-[#070e1b]/90 backdrop-blur-xl text-slate-600 dark:text-slate-400 text-xs mt-auto py-8 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="w-full px-4 sm:px-8 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
         
         {/* Brand Logo & Tagline */}
         <div className="flex items-center gap-3">

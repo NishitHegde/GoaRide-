@@ -107,7 +107,7 @@ export default function Home() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[280px] bg-sky-500/15 dark:bg-cyan-500/20 rounded-full blur-[140px] pointer-events-none" />
         <div className="absolute top-1/3 right-10 w-[350px] h-[250px] bg-orange-500/10 dark:bg-purple-500/20 rounded-full blur-[140px] pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">
+        <div className="w-full px-4 sm:px-8 lg:px-12 relative z-10 text-center space-y-6">
           
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-100 dark:bg-cyan-500/10 border border-sky-300 dark:border-cyan-500/30 text-sky-800 dark:text-cyan-300 text-xs font-bold tracking-wide uppercase shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
@@ -182,7 +182,7 @@ export default function Home() {
       </section>
 
       {/* STATS SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-8 lg:px-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 p-6 sm:p-8 rounded-3xl glass-panel border border-slate-200/80 dark:border-slate-800 text-center shadow-sm">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-sky-600 dark:text-cyan-400">500+</h2>
@@ -204,7 +204,7 @@ export default function Home() {
       </section>
 
       {/* CHOOSE YOUR RIDE CATEGORIES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-8 lg:px-12">
         <div className="text-center mb-6 space-y-1">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Choose Your Ride</h2>
           <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-medium">Find the perfect vehicle for your Goa adventure</p>
@@ -252,7 +252,7 @@ export default function Home() {
       </section>
 
       {/* FEATURED VEHICLES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-8 lg:px-12">
         <div className="flex items-end justify-between mb-6">
           <div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Featured Fleet</h2>
@@ -286,7 +286,7 @@ export default function Home() {
       </section>
 
       {/* WHY CHOOSE GOARIDE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="w-full px-4 sm:px-8 lg:px-12">
         <div className="p-6 sm:p-8 rounded-3xl glass-panel border border-slate-200/80 dark:border-slate-800 text-center space-y-6 sm:space-y-8 shadow-sm">
           <div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Why Choose GoaRide?</h2>

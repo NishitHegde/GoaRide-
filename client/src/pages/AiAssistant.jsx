@@ -322,7 +322,7 @@ export default function AiAssistant() {
   const fuelCalc = calculateVehicleFuelDetails();
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8 relative">
+    <div className="w-full px-4 sm:px-8 lg:px-12 py-6 sm:py-8 space-y-6 sm:space-y-8 relative">
       
       {/* Background Ambient Glows */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-teal-500/10 dark:bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
