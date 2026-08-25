@@ -96,9 +96,15 @@ export default function AiAssistant() {
 
   // Automatically calculate personalized route distance when locations change
   useEffect(() => {
-    if (fuelRoute === 'personalized' && customOrigin.trim() && customDestination.trim()) {
-      const estimated = getEstimatedKmBetween(customOrigin, customDestination);
-      setPersonalizedKm(estimated);
+    if (fuelRoute === 'personalized') {
+      if (!customOrigin && !customDestination) {
+        setCustomOrigin('Calangute Beach');
+        setCustomDestination('Baga Beach');
+        setPersonalizedKm(4);
+      } else if (customOrigin.trim() && customDestination.trim()) {
+        const estimated = getEstimatedKmBetween(customOrigin, customDestination);
+        setPersonalizedKm(estimated);
+      }
     }
   }, [customOrigin, customDestination, fuelRoute]);
 
@@ -549,15 +555,22 @@ export default function AiAssistant() {
                   </div>
 
                   <div>
-                    <label className="block mb-1.5 text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[10px] font-extrabold">Est. Drive Distance (km):</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="1000"
-                      value={personalizedKm}
-                      onChange={(e) => setPersonalizedKm(Number(e.target.value) || 1)}
-                      className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none font-bold text-emerald-600 dark:text-emerald-400"
-                    />
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[10px] font-extrabold block">Est. Drive Distance:</label>
+                      <span className="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700">⚡ Auto-Calculated</span>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        value={personalizedKm}
+                        onChange={(e) => setPersonalizedKm(Number(e.target.value) || 1)}
+                        className="w-full bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-500/40 rounded-xl pl-3.5 pr-8 py-2.5 text-xs text-emerald-900 dark:text-emerald-200 font-black focus:outline-none shadow-sm"
+                        placeholder="Auto-calculated..."
+                      />
+                      <span className="absolute right-3 top-2.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">km</span>
+                    </div>
                   </div>
                 </div>
               </div>
