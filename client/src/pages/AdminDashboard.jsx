@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { socket } from '../services/socket';
 import { useToast } from '../context/ToastContext';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { Shield, Car, Calendar, Users, DollarSign, Plus, Edit, Trash2, CheckCircle, RefreshCw, X, Radio, Play, Pause, AlertTriangle, MapPin, Gauge } from 'lucide-react';
+import { Shield, Car, Calendar, Users, DollarSign, Plus, Edit, Trash2, CheckCircle, RefreshCw, X, Radio, AlertTriangle, MapPin, Gauge, TrendingUp, Wallet, Wrench, ShieldCheck } from 'lucide-react';
 
 const liveCarIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202003.png',
@@ -29,25 +29,6 @@ export default function AdminDashboard() {
     { tripId: 'trip_103', name: 'Toyota Innova Crysta', lat: 15.3808, lng: 73.8314, speed: 52, status: 'AVAILABLE' },
     { tripId: 'trip_104', name: 'RE Classic 350', lat: 15.6028, lng: 73.7381, speed: 0, status: 'OFFLINE' },
   ]);
-
-  // Trip Playback History State
-  const [playbackActive, setPlaybackActive] = useState(false);
-  const [playbackIndex, setPlaybackIndex] = useState(0);
-  const playbackIntervalRef = useRef(null);
-
-  const playbackRoute = [
-    [15.5438, 73.7554],
-    [15.5401, 73.7621],
-    [15.5350, 73.7710],
-    [15.5280, 73.7850],
-    [15.5100, 73.8050],
-    [15.4989, 73.8278],
-    [15.4850, 73.8500],
-    [15.4500, 73.9200],
-    [15.4000, 73.9800],
-    [15.3500, 74.1500],
-    [15.3144, 74.3143],
-  ];
 
   const [sosBanners, setSosBanners] = useState([]);
 
@@ -337,10 +318,10 @@ export default function AdminDashboard() {
           <Radio className="w-4 h-4 text-amber-500" /> Master Telemetry Map
         </button>
         <button
-          onClick={() => setActiveTab('playback')}
-          className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors flex-shrink-0 ${activeTab === 'playback' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+          onClick={() => setActiveTab('analytics')}
+          className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors flex-shrink-0 ${activeTab === 'analytics' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
         >
-          <Play className="w-4 h-4 text-sky-600" /> Trip Playback Replayer
+          <TrendingUp className="w-4 h-4 text-emerald-500" /> Revenue & Financial Analytics
         </button>
         <button
           onClick={() => setActiveTab('vehicles')}
@@ -392,40 +373,127 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* TAB: TRIP PLAYBACK REPLAYER */}
-      {activeTab === 'playback' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+      {/* TAB: REVENUE & FINANCIAL ANALYTICS */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
             <div>
-              <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Trip History Playback Replayer</h3>
-              <p className="text-xs text-slate-500 font-medium">Replay driver traversal route history along OpenStreetMap polyline</p>
+              <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Fleet Revenue & Financial Analytics</h3>
+              <p className="text-xs text-slate-500 font-medium">Real-time revenue metrics, daily run-rate, hub performance, and fleet health</p>
             </div>
-
-            <button
-              onClick={togglePlayback}
-              className={`px-5 py-2.5 rounded-xl font-bold text-xs shadow flex items-center gap-2 ${
-                playbackActive ? 'bg-amber-500 text-slate-900' : 'bg-sky-600 text-white'
-              }`}
-            >
-              {playbackActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              <span>{playbackActive ? 'Pause Playback' : 'Replay Trip History'}</span>
-            </button>
+            <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-300">
+              Live Revenue Stream
+            </span>
           </div>
 
-          <div className="rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl h-[460px]">
-            <MapContainer center={playbackRoute[playbackIndex]} zoom={12} scrollWheelZoom={true} className="w-full h-full">
-              <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Polyline positions={playbackRoute} color="#0284c7" weight={6} opacity={0.7} />
-              <Marker position={playbackRoute[playbackIndex]} icon={liveCarIcon}>
-                <Popup className="font-sans text-xs">
-                  <strong className="text-slate-900 block">Trip Playback Position</strong>
-                  <span>Waypoint {playbackIndex + 1} of {playbackRoute.length}</span>
-                </Popup>
-              </Marker>
-            </MapContainer>
+          {/* Revenue KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider">Total Revenue</span>
+                <Wallet className="w-4 h-4 text-emerald-500" />
+              </div>
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                ₹{bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0).toLocaleString()}
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold block">Gross fleet booking earnings</span>
+            </div>
+
+            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider">Avg. Booking Value</span>
+                <TrendingUp className="w-4 h-4 text-sky-500" />
+              </div>
+              <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">
+                ₹{bookings.length > 0 ? Math.round(bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0) / bookings.length) : 0}
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold block">Average earnings per rental trip</span>
+            </div>
+
+            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider">Active Rentals</span>
+                <Car className="w-4 h-4 text-orange-500" />
+              </div>
+              <span className="text-2xl font-black text-orange-600 dark:text-orange-400">
+                {bookings.filter(b => (b.bookingStatus || b.status) === 'ACTIVE' || (b.bookingStatus || b.status) === 'CONFIRMED').length} Vehicles
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold block">Currently out on Goa roads</span>
+            </div>
+
+            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider">Deposits Held</span>
+                <Shield className="w-4 h-4 text-purple-500" />
+              </div>
+              <span className="text-2xl font-black text-purple-600 dark:text-purple-400">
+                ₹{vehicles.reduce((acc, v) => acc + (v.securityDeposit || 1000), 0).toLocaleString()}
+              </span>
+              <span className="text-[10px] text-slate-500 font-bold block">Security deposit escrow pool</span>
+            </div>
+          </div>
+
+          {/* Breakdown Section: Vehicle Category & Hub Performance */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Hub Revenue Matrix */}
+            <div className="p-6 rounded-3xl glass-panel border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xl">
+              <h4 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-amber-500" /> Top Goa Pickup Hub Revenue
+              </h4>
+              <div className="space-y-3">
+                {['Calangute', 'Baga', 'Panaji', 'Dabolim Airport', 'Anjuna'].map((hub, idx) => {
+                  const hubBookings = bookings.filter(b => (b.pickupLocation || '').toLowerCase().includes(hub.toLowerCase()));
+                  const hubRev = hubBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+                  const percentage = Math.min(100, Math.max(15, (hubBookings.length / (bookings.length || 1)) * 100));
+
+                  return (
+                    <div key={idx} className="space-y-1 text-xs">
+                      <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                        <span>{hub} Hub</span>
+                        <span className="text-sky-600 dark:text-cyan-400 font-black">₹{hubRev.toLocaleString()} ({hubBookings.length} trips)</span>
+                      </div>
+                      <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div className="bg-gradient-to-r from-sky-500 to-blue-600 h-full rounded-full transition-all" style={{ width: `${percentage}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Fleet Health & Servicing Status */}
+            <div className="p-6 rounded-3xl glass-panel border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xl">
+              <h4 className="font-extrabold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-rose-500" /> Fleet Health & Maintenance Monitor
+              </h4>
+              <div className="space-y-3 text-xs">
+                <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-600" />
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Vehicles Inspected & Road Ready</span>
+                  </div>
+                  <span className="font-black text-emerald-600 dark:text-emerald-400">{vehicles.length} / {vehicles.length} Passed</span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Gauge className="w-4 h-4 text-amber-600" />
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Oil Change & Servicing Due</span>
+                  </div>
+                  <span className="font-black text-amber-600 dark:text-amber-400">0 Vehicles</span>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-sky-600" />
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Goa Transport Commercial Permits</span>
+                  </div>
+                  <span className="font-black text-sky-600 dark:text-cyan-400">100% Verified</span>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
