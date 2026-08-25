@@ -441,11 +441,12 @@ export default function AiAssistant() {
 
           {/* Visual Telemetry Metric Cards */}
           <div className="p-6 rounded-3xl bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/30 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-amber-500" /> Fuel Telemetry Matrix Result
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+              <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                <span>Fuel Telemetry Matrix Result</span>
               </span>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+              <span className="text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 flex-shrink-0">
                 {fuelCalc.fuelLabel}
               </span>
             </div>
