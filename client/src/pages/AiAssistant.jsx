@@ -81,31 +81,45 @@ export default function AiAssistant() {
 
     let mileage = 45; // Default scooter mileage
     let unit = 'Liters';
-    let unitPrice = 98; // Petrol ₹98/L in Goa
+    let unitPrice = 103; // Petrol ₹103/L in Goa
+    let fuelLabel = 'Petrol Price: ₹103/L';
 
     if (targetVehicle) {
       const vName = targetVehicle.name.toLowerCase();
       const vType = targetVehicle.type?.toLowerCase();
+      const vFuel = (targetVehicle.fuelType || '').toLowerCase();
 
       if (vName.includes('ev') || vName.includes('chetak') || vName.includes('nexon ev')) {
         mileage = 7; // km per kWh
         unit = 'kWh';
         unitPrice = 12; // EV Charging ₹12/kWh
-      } else if (vType === 'bike') {
-        if (vName.includes('classic') || vName.includes('enfield') || vName.includes('himalayan')) {
-          mileage = 35;
-        } else if (vName.includes('r15') || vName.includes('duke')) {
-          mileage = 38;
-        } else {
-          mileage = 45; // Activa, Dio, Jupiter
-        }
-      } else if (vType === 'car') {
-        if (vName.includes('thar') || vName.includes('innova') || vName.includes('fortuner')) {
-          mileage = 9;
-        } else if (vName.includes('creta') || vName.includes('venue') || vName.includes('brezza')) {
-          mileage = 13;
-        } else {
-          mileage = 16; // Swift, Baleno, i20
+        fuelLabel = 'EV Rate: ₹12/kWh';
+      } else if (vFuel === 'diesel' || vName.includes('diesel') || vName.includes('innova') || vName.includes('fortuner')) {
+        mileage = 11;
+        unit = 'Liters';
+        unitPrice = 96; // Diesel ₹96/L in Goa
+        fuelLabel = 'Diesel Price: ₹96/L';
+      } else {
+        unit = 'Liters';
+        unitPrice = 103; // Petrol ₹103/L in Goa
+        fuelLabel = 'Petrol Price: ₹103/L';
+
+        if (vType === 'bike') {
+          if (vName.includes('classic') || vName.includes('enfield') || vName.includes('himalayan')) {
+            mileage = 35;
+          } else if (vName.includes('r15') || vName.includes('duke')) {
+            mileage = 38;
+          } else {
+            mileage = 45; // Activa, Dio, Jupiter
+          }
+        } else if (vType === 'car') {
+          if (vName.includes('thar')) {
+            mileage = 9;
+          } else if (vName.includes('creta') || vName.includes('venue') || vName.includes('brezza')) {
+            mileage = 13;
+          } else {
+            mileage = 16; // Swift, Baleno, i20
+          }
         }
       }
     }
@@ -113,7 +127,7 @@ export default function AiAssistant() {
     const consumption = (km / mileage).toFixed(1);
     const cost = Math.round(consumption * unitPrice);
 
-    return { km, consumption, cost, mileage, unit, unitPrice, targetVehicle };
+    return { km, consumption, cost, mileage, unit, unitPrice, fuelLabel, targetVehicle };
   };
 
   const handleSend = async (queryText) => {
@@ -375,7 +389,7 @@ export default function AiAssistant() {
               <Fuel className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-black">Goa Route Fuel Matrix ({fleetVehicles.length} Vehicles Matrix)</h2>
+              <h2 className="text-2xl font-black">Goa Route Fuel Matrix</h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Select any vehicle from your fleet to calculate route distance, exact mileage, consumption, and fuel cost telemetry.</p>
             </div>
           </div>
@@ -410,7 +424,7 @@ export default function AiAssistant() {
             )}
 
             <div className="sm:col-span-2">
-              <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Fleet Vehicle (All Vehicles Included):</label>
+              <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Fleet Vehicle:</label>
               <select
                 value={selectedVehicleId}
                 onChange={(e) => setSelectedVehicleId(e.target.value)}
@@ -418,7 +432,7 @@ export default function AiAssistant() {
               >
                 {fleetVehicles.map((v) => (
                   <option key={v._id} value={v._id}>
-                    {v.type === 'bike' ? '🏍️' : '🚗'} {v.name} ({v.location}) — ₹{v.pricePerDay}/day
+                    {v.type === 'bike' ? '🏍️' : '🚗'} {v.name}
                   </option>
                 ))}
               </select>
@@ -432,7 +446,7 @@ export default function AiAssistant() {
                 <Flame className="w-4 h-4 text-amber-500" /> Fuel Telemetry Matrix Result
               </span>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                {fuelCalc.unit === 'kWh' ? 'EV Rate: ₹12/kWh' : 'Goa Petrol Rate: ₹98/L'}
+                {fuelCalc.fuelLabel}
               </span>
             </div>
 
