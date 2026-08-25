@@ -31,6 +31,9 @@ export default function AiAssistant() {
   // Fuel Estimator Interactive Tool State
   const [fuelRoute, setFuelRoute] = useState('dudhsagar');
   const [customDistance, setCustomDistance] = useState(82);
+  const [customOrigin, setCustomOrigin] = useState('');
+  const [customDestination, setCustomDestination] = useState('');
+  const [personalizedKm, setPersonalizedKm] = useState(25);
 
   // Budget Planner State
   const [budgetDays, setBudgetDays] = useState(3);
@@ -47,8 +50,19 @@ export default function AiAssistant() {
   const routesMap = {
     dudhsagar: { name: 'Calangute ➔ Dudhsagar Waterfalls', km: 82 },
     palolem: { name: 'Panaji ➔ Palolem Beach (South Goa)', km: 70 },
-    baga: { name: 'Dabolim Airport ➔ Baga Beach', km: 40 },
-    custom: { name: 'Custom Driving Distance', km: customDistance },
+    baga: { name: 'Dabolim Airport (GOI) ➔ Baga Beach', km: 40 },
+    mopa: { name: 'Mopa Airport (GOX) ➔ Calangute Beach', km: 35 },
+    margao_colva: { name: 'Margao Railway Station ➔ Colva Beach', km: 8 },
+    anjuna_arambol: { name: 'Anjuna Beach ➔ Arambol Sweet Water Lake', km: 24 },
+    vasco_aguada: { name: 'Vasco da Gama ➔ Fort Aguada', km: 38 },
+    mapusa_vagator: { name: 'Mapusa Market ➔ Vagator / Chapora Fort', km: 12 },
+    panaji_oldgoa: { name: 'Panaji ➔ Old Goa Churches (Bom Jesus)', km: 10 },
+    morjim_caboderama: { name: 'Morjim Beach ➔ Cabo de Rama Fort', km: 95 },
+    custom: { name: 'Custom Driving Distance', km: Number(customDistance) || 1 },
+    personalized: {
+      name: customOrigin && customDestination ? `${customOrigin} ➔ ${customDestination}` : 'Personalized Custom Route',
+      km: Number(personalizedKm) || 1,
+    },
   };
 
   useEffect(() => {
@@ -74,8 +88,21 @@ export default function AiAssistant() {
 
   // Dynamic Fuel & Mileage calculation for ALL vehicles in fleet
   const calculateVehicleFuelDetails = () => {
-    const selectedRoute = routesMap[fuelRoute];
-    const km = fuelRoute === 'custom' ? Number(customDistance) || 1 : selectedRoute.km;
+    let km = 82;
+    let routeName = 'Calangute ➔ Dudhsagar Waterfalls';
+
+    if (fuelRoute === 'custom') {
+      km = Number(customDistance) || 1;
+      routeName = `Custom Drive (${km} km)`;
+    } else if (fuelRoute === 'personalized') {
+      km = Number(personalizedKm) || 1;
+      const start = customOrigin.trim() || 'Start Location';
+      const end = customDestination.trim() || 'Destination Location';
+      routeName = `${start} ➔ ${end}`;
+    } else if (routesMap[fuelRoute]) {
+      km = routesMap[fuelRoute].km;
+      routeName = routesMap[fuelRoute].name;
+    }
 
     const targetVehicle = fleetVehicles.find((v) => v._id === selectedVehicleId) || fleetVehicles[0];
 
@@ -127,7 +154,7 @@ export default function AiAssistant() {
     const consumption = (km / mileage).toFixed(1);
     const cost = Math.round(consumption * unitPrice);
 
-    return { km, consumption, cost, mileage, unit, unitPrice, fuelLabel, targetVehicle };
+    return { km, routeName, consumption, cost, mileage, unit, unitPrice, fuelLabel, targetVehicle };
   };
 
   const handleSend = async (queryText) => {
@@ -395,19 +422,70 @@ export default function AiAssistant() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-bold">
-            <div>
+            <div className={fuelRoute === 'personalized' ? 'sm:col-span-2' : ''}>
               <label className="block mb-2 text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[10px]">Select Route:</label>
               <select
                 value={fuelRoute}
                 onChange={(e) => setFuelRoute(e.target.value)}
                 className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none shadow-sm font-bold"
               >
-                <option value="dudhsagar">Calangute ➔ Dudhsagar Waterfalls (82 km)</option>
-                <option value="palolem">Panaji ➔ Palolem Beach (70 km)</option>
-                <option value="baga">Dabolim Airport ➔ Baga Beach (40 km)</option>
-                <option value="custom">Custom Distance Drive</option>
+                <optgroup label="📍 Popular Goa Routes">
+                  <option value="dudhsagar">Calangute ➔ Dudhsagar Waterfalls (82 km)</option>
+                  <option value="palolem">Panaji ➔ Palolem Beach (70 km)</option>
+                  <option value="baga">Dabolim Airport (GOI) ➔ Baga Beach (40 km)</option>
+                  <option value="mopa">Mopa Airport (GOX) ➔ Calangute Beach (35 km)</option>
+                  <option value="margao_colva">Margao Railway Station ➔ Colva Beach (8 km)</option>
+                  <option value="anjuna_arambol">Anjuna Beach ➔ Arambol Sweet Water Lake (24 km)</option>
+                  <option value="vasco_aguada">Vasco da Gama ➔ Fort Aguada (38 km)</option>
+                  <option value="mapusa_vagator">Mapusa Market ➔ Vagator / Chapora Fort (12 km)</option>
+                  <option value="panaji_oldgoa">Panaji ➔ Old Goa Churches (Bom Jesus) (10 km)</option>
+                  <option value="morjim_caboderama">Morjim Beach ➔ Cabo de Rama Fort (95 km)</option>
+                </optgroup>
+                <optgroup label="✨ Custom & Personalized Routes">
+                  <option value="personalized">🗺️ Personalized Route (Type Any Custom Locations)</option>
+                  <option value="custom">📏 Custom Distance Drive (km)</option>
+                </optgroup>
               </select>
             </div>
+
+            {/* Personalized Custom Route Input Fields */}
+            {fuelRoute === 'personalized' && (
+              <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                <div>
+                  <label className="block mb-1.5 text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[10px] font-extrabold">Start Location (Origin):</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Baga Beach"
+                    value={customOrigin}
+                    onChange={(e) => setCustomOrigin(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1.5 text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[10px] font-extrabold">End Location (Destination):</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Fontainhas Panaji"
+                    value={customDestination}
+                    onChange={(e) => setCustomDestination(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1.5 text-amber-900 dark:text-amber-300 uppercase tracking-wider text-[10px] font-extrabold">Est. Drive Distance (km):</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={personalizedKm}
+                    onChange={(e) => setPersonalizedKm(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none font-bold"
+                  />
+                </div>
+              </div>
+            )}
 
             {fuelRoute === 'custom' && (
               <div>
