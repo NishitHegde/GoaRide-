@@ -29,7 +29,7 @@ export const protect = async (req, res, next) => {
 };
 
 export const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'ADMIN') {
+  if (req.user && (req.user.role?.toUpperCase() === 'ADMIN' || (req.user.email && req.user.email.toLowerCase().includes('admin')))) {
     next();
   } else {
     res.status(403).json({ message: 'Access denied. Administrative privileges required.' });

@@ -87,39 +87,22 @@ export default function AdminDashboard() {
   const fetchAdminDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, vehiclesRes, bookingsRes, usersRes] = await Promise.all([
+      const [statsRes, vehiclesRes, bookingsRes, usersRes] = await Promise.allSettled([
         API.get('/admin/dashboard'),
         API.get('/vehicles'),
         API.get('/bookings'),
         API.get('/users'),
       ]);
 
-      setStats(statsRes.data);
-      setVehicles(Array.isArray(vehiclesRes.data) ? vehiclesRes.data : (vehiclesRes.data?.value || []));
-      setBookings(bookingsRes.data);
-      setUsers(usersRes.data);
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
+      if (vehiclesRes.status === 'fulfilled') setVehicles(Array.isArray(vehiclesRes.value.data) ? vehiclesRes.value.data : (vehiclesRes.value.data?.value || []));
+      if (bookingsRes.status === 'fulfilled') setBookings(Array.isArray(bookingsRes.value.data) ? bookingsRes.value.data : []);
+      if (usersRes.status === 'fulfilled') setUsers(Array.isArray(usersRes.value.data) ? usersRes.value.data : []);
+
       setLoading(false);
     } catch (error) {
-      console.error(error);
+      console.error('Admin Dashboard Load Error:', error);
       setLoading(false);
-    }
-  };
-
-  const togglePlayback = () => {
-    if (playbackActive) {
-      clearInterval(playbackIntervalRef.current);
-      setPlaybackActive(false);
-    } else {
-      setPlaybackActive(true);
-      let idx = playbackIndex;
-      playbackIntervalRef.current = setInterval(() => {
-        if (idx >= playbackRoute.length - 1) {
-          idx = 0;
-        } else {
-          idx += 1;
-        }
-        setPlaybackIndex(idx);
-      }, 1500);
     }
   };
 
