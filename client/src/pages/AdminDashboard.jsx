@@ -24,6 +24,7 @@ export default function AdminDashboard() {
     activeBookings: 8,
     completedBookings: 4,
     revenue: 45800,
+    recentBookings: [],
   });
   const [vehicles, setVehicles] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -489,22 +490,28 @@ export default function AdminDashboard() {
       )}
 
       {/* TAB: OVERVIEW */}
-      {activeTab === 'overview' && stats && (
+      {activeTab === 'overview' && (
         <div className="space-y-6">
           <h3 className="font-bold text-lg text-slate-900 dark:text-white">Recent Fleet Bookings</h3>
           <div className="space-y-3">
-            {stats.recentBookings.map((b) => (
-              <div key={b._id} className="p-4 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs shadow-sm">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-white block text-sm">{b.vehicle?.name || 'Vehicle'}</span>
-                  <span className="text-slate-600 dark:text-slate-400 font-medium">Customer: {b.user?.name} ({b.user?.email})</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-extrabold text-sky-600 dark:text-cyan-400 text-base block">₹{b.totalAmount}</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">{b.bookingStatus}</span>
-                </div>
+            {(stats?.recentBookings || []).length === 0 ? (
+              <div className="p-5 rounded-2xl glass-card text-center text-xs text-slate-500 font-bold border border-slate-200/80 dark:border-slate-800">
+                No recent bookings recorded yet.
               </div>
-            ))}
+            ) : (
+              (stats?.recentBookings || []).map((b) => (
+                <div key={b._id || Math.random()} className="p-4 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs shadow-sm">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block text-sm">{b.vehicle?.name || 'Vehicle'}</span>
+                    <span className="text-slate-600 dark:text-slate-400 font-medium">Customer: {b.user?.name || 'Guest'} ({b.user?.email || 'N/A'})</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-extrabold text-sky-600 dark:text-cyan-400 text-base block">₹{(b.totalAmount || 0).toLocaleString()}</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">{b.bookingStatus || 'CONFIRMED'}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
