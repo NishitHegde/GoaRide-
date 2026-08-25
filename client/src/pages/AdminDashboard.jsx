@@ -16,11 +16,19 @@ export default function AdminDashboard() {
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    totalUsers: 48,
+    totalVehicles: 19,
+    totalBookings: 12,
+    pendingBookings: 2,
+    activeBookings: 8,
+    completedBookings: 4,
+    revenue: 45800,
+  });
   const [vehicles, setVehicles] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Master Telemetry Fleet Map State
   const [masterFleetGps, setMasterFleetGps] = useState([
