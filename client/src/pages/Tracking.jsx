@@ -441,26 +441,27 @@ export default function Tracking() {
 
       {/* YELLOW LOCKED BOOKING NOTICE BANNER */}
       {accessDenied && (
-        <div className="p-4.5 rounded-3xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 flex-shrink-0">
-              <Lock className="w-5 h-5 text-amber-700 dark:text-amber-300" />
+        <div className="p-4 sm:p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300/80 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 text-xs font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 shadow-lg">
+          <div className="flex items-start gap-3 w-full sm:w-auto">
+            <div className="p-2 sm:p-2.5 rounded-2xl bg-amber-200/80 dark:bg-amber-900/80 text-amber-900 dark:text-amber-200 flex-shrink-0 mt-0.5 sm:mt-0">
+              <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-700 dark:text-amber-300" />
             </div>
-            <div>
-              <span className="font-black text-sm block text-amber-950 dark:text-amber-100">
+            <div className="space-y-0.5 flex-grow">
+              <span className="font-black text-xs sm:text-sm block text-amber-950 dark:text-amber-100 leading-tight">
                 🔒 Live GPS Tracking Restricted
               </span>
-              <span className="text-xs opacity-90 font-semibold">
-                An active vehicle booking is required to unlock real-time GPS telemetry stream for {selectedVehicle ? selectedVehicle.name : 'this vehicle'}.
-              </span>
+              <p className="text-[11px] sm:text-xs opacity-90 font-medium leading-relaxed">
+                An active booking is required to unlock real-time GPS tracking stream for <strong className="font-bold">{selectedVehicle ? selectedVehicle.name : 'this vehicle'}</strong>.
+              </p>
             </div>
           </div>
           {selectedVehicle && (
             <Link
               to="/vehicles"
-              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs shadow-md hover:scale-105 transition-all flex-shrink-0"
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 text-white font-black text-xs shadow-md flex items-center justify-center gap-1 hover:scale-105 transition-all flex-shrink-0 text-center"
             >
-              Book Vehicle to Unlock →
+              <span>Book Vehicle to Unlock</span>
+              <span>→</span>
             </Link>
           )}
         </div>
