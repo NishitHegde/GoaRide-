@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 
@@ -19,11 +19,22 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b1727] text-slate-900 dark:text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden transition-colors duration-300">
             {/* Visual Interactive Background & Custom Cursor Effects */}
             <AnimatedBackground />
