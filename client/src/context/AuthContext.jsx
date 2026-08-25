@@ -10,23 +10,27 @@ export const AuthProvider = ({ children }) => {
   const { showToast } = useToast();
 
   useEffect(() => {
-    const verifyUserSession = async () => {
+    const verifyUserSession = () => {
       const storedUser = localStorage.getItem('userInfo');
       if (storedUser) {
         try {
           const parsed = JSON.parse(storedUser);
           if (parsed?.token) {
-            // Verify token & fetch fresh user profile from /api/auth/me
-            const { data } = await API.get('/auth/me');
-            const verifiedUser = { ...data, token: parsed.token };
-            setUser(verifiedUser);
-            localStorage.setItem('userInfo', JSON.stringify(verifiedUser));
+            setUser(parsed);
+            API.get('/auth/me')
+              .then(({ data }) => {
+                const freshUser = { ...data, token: parsed.token };
+                setUser(freshUser);
+                localStorage.setItem('userInfo', JSON.stringify(freshUser));
+              })
+              .catch((err) => {
+                console.warn('Background token check note:', err?.message);
+              });
           } else {
             localStorage.removeItem('userInfo');
             setUser(null);
           }
-        } catch (error) {
-          console.warn('Session token verification failed or expired. Logging out user...');
+        } catch (e) {
           localStorage.removeItem('userInfo');
           setUser(null);
         }

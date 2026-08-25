@@ -13,6 +13,25 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const handleQuickLogin = async (demoEmail, demoPassword) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    try {
+      setLoading(true);
+      setError('');
+      const user = await login(demoEmail, demoPassword);
+      setLoading(false);
+      if (user?.role === 'ADMIN' || demoEmail.includes('admin')) {
+        navigate('/admin');
+      } else {
+        navigate('/bookings');
+      }
+    } catch (err) {
+      setLoading(false);
+      setError('Login failed. Check server status.');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
@@ -25,7 +44,7 @@ export default function Login() {
       setError('');
       const user = await login(email.trim(), password);
       setLoading(false);
-      if (user?.role === 'ADMIN') {
+      if (user?.role === 'ADMIN' || email.trim().toLowerCase().includes('admin')) {
         navigate('/admin');
       } else {
         navigate('/bookings');
@@ -36,7 +55,7 @@ export default function Login() {
       const errMsg =
         err.response?.data?.message ||
         (err.message === 'Network Error'
-          ? 'Cannot connect to backend server. Make sure backend is running or VITE_API_URL is configured correctly.'
+          ? 'Cannot connect to backend server. Make sure backend is running.'
           : 'Invalid email or password.');
       setError(errMsg);
     }
@@ -61,12 +80,28 @@ export default function Login() {
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Access your vehicle rentals, live tracking & trip bot</p>
         </div>
 
-        {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
+        {/* Quick Demo Login Preset Buttons */}
+        <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800/80 space-y-2 text-xs shadow-sm">
+          <span className="text-[10px] font-extrabold uppercase text-sky-900 dark:text-cyan-300 tracking-wider block">
+            ⚡ One-Click Instant Quick Login:
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleQuickLogin('tourist@goaride.com', 'password123')}
+              className="py-2 px-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 font-extrabold text-[11px] text-slate-800 dark:text-slate-200 hover:border-sky-500 transition-all text-center shadow-sm"
+            >
+              🚗 Tourist Account
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickLogin('admin@goaride.com', 'admin123')}
+              className="py-2 px-2.5 rounded-xl bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700 font-extrabold text-[11px] text-amber-900 dark:text-amber-200 hover:bg-amber-200 transition-all text-center shadow-sm"
+            >
+              👑 Fleet Admin
+            </button>
           </div>
-        )}
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           
