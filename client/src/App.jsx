@@ -57,10 +57,8 @@ export default function App() {
                   <Route path="/bookings" element={<Bookings />} />
                 </Route>
 
-                {/* Admin Protected Routes */}
-                <Route element={<AdminRoute />}>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                </Route>
+                {/* Direct Admin Route */}
+                <Route path="/admin" element={<AdminDashboard />} />
 
               </Routes>
             </main>

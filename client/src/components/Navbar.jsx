@@ -81,19 +81,17 @@ export default function Navbar() {
               </Link>
             )}
 
-            {user && (
-              <Link
-                to="/admin"
-                className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
-                  isActive('/admin')
-                    ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 font-extrabold border border-amber-300 dark:border-amber-500/40'
-                    : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Admin Console</span>
-              </Link>
-            )}
+            <Link
+              to="/admin"
+              className={`px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 ${
+                isActive('/admin')
+                  ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 font-extrabold border border-amber-300 dark:border-amber-500/40'
+                  : 'hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Admin Console</span>
+            </Link>
           </nav>
 
           {/* Right Action Buttons */}
@@ -224,16 +222,14 @@ export default function Navbar() {
             </Link>
           )}
 
-          {user?.role === 'ADMIN' && (
-            <Link
-              to="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-sm font-bold text-amber-900 dark:text-amber-300 transition-colors"
-            >
-              <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              <span>Admin Console</span>
-            </Link>
-          )}
+          <Link
+            to="/admin"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-sm font-bold text-amber-900 dark:text-amber-300 transition-colors"
+          >
+            <Shield className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span>Admin Console</span>
+          </Link>
 
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
             {user ? (
