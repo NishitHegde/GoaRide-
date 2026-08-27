@@ -166,7 +166,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
         {/* Header */}
         <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80">
           <div className="flex items-center gap-3">
-            <img src={vehicle.image} alt={vehicle.name} className="w-12 h-12 object-cover rounded-xl border border-slate-200 dark:border-slate-700" />
+            <img src={vehicle.image} alt={vehicle.name} className="w-14 h-14 object-contain p-1 rounded-xl border border-amber-500/30 bg-slate-100 dark:bg-slate-900" />
             <div>
               <h3 className="font-bold text-lg text-slate-900 dark:text-white">{vehicle.name}</h3>
               <p className="text-xs text-sky-600 dark:text-cyan-400 font-bold">₹{vehicle.pricePerDay} / day • {vehicle.type.toUpperCase()}</p>
