@@ -24,9 +24,27 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-black text-xl tracking-tight text-slate-900 dark:text-white">
-            <span className="p-2 bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-500 rounded-xl text-slate-950 shadow-md text-base font-black">🚗</span>
-            <span>Goa<span className="text-amber-500 dark:text-amber-400">Ride</span></span>
+          <Link to="/" className="logo-wrapper flex items-center gap-2.5 group select-none">
+            {/* Animated Icon Box */}
+            <div className="logo-icon-box relative flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-950/90 border border-[#00eaff]/50 overflow-hidden shadow-lg transition-transform">
+              {/* Floating Palm & Bike */}
+              <div className="flex items-center gap-0.5 text-sm z-10">
+                <span className="anim-palm text-xs" role="img" aria-label="palm tree">🌴</span>
+                <span className="anim-bike text-sm" role="img" aria-label="bike">🏍️</span>
+              </div>
+              {/* Animated Road / Wave Line at bottom of icon */}
+              <div className="animated-road-line absolute bottom-1 left-0 right-0 h-[2.5px] opacity-90" />
+            </div>
+
+            {/* Wordmark + Tagline */}
+            <div className="flex flex-col justify-center leading-none">
+              <span className="neon-goaride-text text-xl sm:text-2xl tracking-tight">
+                GoaRide
+              </span>
+              <span className="neon-tagline mt-0.5 tracking-wider font-extrabold">
+                RIDE • EXPLORE • DISCOVER
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Navigation Links */}

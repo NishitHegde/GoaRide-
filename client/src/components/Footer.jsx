@@ -9,9 +9,22 @@ export default function Footer() {
         
         {/* Brand Logo & Tagline */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
-            <span className="p-1.5 bg-gradient-to-tr from-amber-500 via-orange-500 to-yellow-500 rounded-lg text-slate-950 text-sm font-black">🚗</span>
-            <span>Goa<span className="text-amber-500 dark:text-amber-400">Ride</span></span>
+          <Link to="/" className="logo-wrapper flex items-center gap-2 group select-none">
+            <div className="logo-icon-box relative flex items-center justify-center w-8 h-8 rounded-xl bg-slate-950/90 border border-[#00eaff]/50 overflow-hidden shadow-md">
+              <div className="flex items-center gap-0.5 text-xs z-10">
+                <span className="anim-palm text-[10px]" role="img" aria-label="palm tree">🌴</span>
+                <span className="anim-bike text-xs" role="img" aria-label="bike">🏍️</span>
+              </div>
+              <div className="animated-road-line absolute bottom-0.5 left-0 right-0 h-[2px] opacity-90" />
+            </div>
+            <div className="flex flex-col justify-center leading-none">
+              <span className="neon-goaride-text text-lg tracking-tight">
+                GoaRide
+              </span>
+              <span className="neon-tagline text-[6.5px] mt-0.5 tracking-wider font-extrabold">
+                RIDE • EXPLORE • DISCOVER
+              </span>
+            </div>
           </Link>
           <span className="text-slate-300 dark:text-slate-700">|</span>
           <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium">Goa's AI Vehicle Rental Fleet</span>

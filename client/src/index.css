@@ -114,3 +114,137 @@ html.dark .text-gradient {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ==========================================================================
+   NEON ANIMATED GOARIDE LOGO STYLES
+   ========================================================================== */
+
+@keyframes neon-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes logo-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+
+@keyframes palm-swing {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes bike-ride {
+  0%, 100% {
+    transform: translateX(0px) translateY(0px);
+  }
+  50% {
+    transform: translateX(2px) translateY(-1px);
+  }
+}
+
+@keyframes road-wave {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 24px 0;
+  }
+}
+
+@keyframes logo-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 234, 255, 0.6), inset 0 0 6px rgba(0, 255, 157, 0.4);
+    border-color: rgba(0, 234, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(0, 255, 157, 0.85), inset 0 0 10px rgba(0, 234, 255, 0.6);
+    border-color: rgba(0, 255, 157, 0.8);
+  }
+}
+
+.logo-wrapper {
+  animation: logo-float 4s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.logo-wrapper:hover {
+  transform: scale(1.05);
+}
+
+.logo-icon-box {
+  animation: logo-pulse-glow 3s infinite ease-in-out;
+}
+
+.anim-palm {
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: palm-swing 3s ease-in-out infinite;
+}
+
+.anim-bike {
+  display: inline-block;
+  animation: bike-ride 2s ease-in-out infinite;
+}
+
+.animated-road-line {
+  background: repeating-linear-gradient(
+    90deg,
+    #00eaff 0px,
+    #00eaff 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  animation: road-wave 1.2s linear infinite;
+}
+
+/* Neon GoaRide Wordmark Text */
+.neon-goaride-text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  background: linear-gradient(
+    90deg,
+    #00eaff 0%,
+    #00ff9d 33%,
+    #39ff14 66%,
+    #00eaff 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 1.1px rgba(0, 234, 255, 0.95);
+  filter: drop-shadow(0 0 6px rgba(0, 234, 255, 0.85)) drop-shadow(0 0 12px rgba(0, 255, 157, 0.5));
+  animation: neon-gradient-flow 3.5s linear infinite;
+  transition: all 0.3s ease;
+}
+
+.logo-wrapper:hover .neon-goaride-text {
+  filter: drop-shadow(0 0 10px rgba(0, 234, 255, 1)) drop-shadow(0 0 20px rgba(57, 255, 20, 0.9));
+}
+
+/* Subtle Animated Tagline */
+.neon-tagline {
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: #00ff9d;
+  text-shadow: 0 0 5px rgba(0, 255, 157, 0.7);
+  opacity: 0.95;
+  text-transform: uppercase;
+}
