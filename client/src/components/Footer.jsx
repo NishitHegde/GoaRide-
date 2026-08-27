@@ -10,7 +10,7 @@ export default function Footer() {
         {/* Brand Logo & Tagline */}
         <div className="flex items-center gap-3">
           <Link to="/" className="logo-wrapper flex items-center gap-2 group select-none">
-            <div className="logo-icon-box relative flex items-center justify-center w-8 h-8 rounded-xl bg-slate-950/90 border border-[#00eaff]/50 overflow-hidden shadow-md">
+            <div className="logo-icon-box relative flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-950/80 border border-amber-500/40 overflow-hidden shadow-md">
               <div className="flex items-center gap-0.5 text-xs z-10">
                 <span className="anim-palm text-[10px]" role="img" aria-label="palm tree">🌴</span>
                 <span className="anim-bike text-xs" role="img" aria-label="bike">🏍️</span>

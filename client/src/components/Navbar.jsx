@@ -25,14 +25,16 @@ export default function Navbar() {
           
           {/* Logo */}
           <Link to="/" className="logo-wrapper flex items-center gap-2.5 group select-none">
-            {/* Animated Icon Box */}
-            <div className="logo-icon-box relative flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-950/90 border border-[#00eaff]/50 overflow-hidden shadow-lg transition-transform">
+            {/* Electric Sunset & Palm Icon Box */}
+            <div className="logo-icon-box relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-950/80 border border-amber-500/40 overflow-hidden shadow-lg transition-transform">
+              {/* Glowing Golden Sunset Disc */}
+              <div className="absolute inset-1 rounded-xl bg-gradient-to-t from-amber-500/20 via-orange-500/10 to-transparent pointer-events-none" />
               {/* Floating Palm & Bike */}
               <div className="flex items-center gap-0.5 text-sm z-10">
                 <span className="anim-palm text-xs" role="img" aria-label="palm tree">🌴</span>
                 <span className="anim-bike text-sm" role="img" aria-label="bike">🏍️</span>
               </div>
-              {/* Animated Road / Wave Line at bottom of icon */}
+              {/* Animated Wave / Road Line */}
               <div className="animated-road-line absolute bottom-1 left-0 right-0 h-[2.5px] opacity-90" />
             </div>
 
