@@ -109,8 +109,8 @@ export default function Home() {
 
         <div className="w-full px-4 sm:px-8 lg:px-12 relative z-10 text-center space-y-6">
           
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-100 dark:bg-cyan-500/10 border border-sky-300 dark:border-cyan-500/30 text-sky-800 dark:text-cyan-300 text-xs font-bold tracking-wide uppercase shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-bold tracking-wide uppercase shadow-sm">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
             <span>🌴 AI Powered Goa Vehicle Rentals</span>
           </div>
 
@@ -123,13 +123,13 @@ export default function Home() {
           </p>
 
           {/* Search Bar */}
-          <div className="max-w-4xl mx-auto glass-panel p-3.5 sm:p-4 rounded-3xl shadow-xl border border-slate-200/80 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-3 text-left mt-4">
+          <div className="max-w-4xl mx-auto glass-panel p-3.5 sm:p-4 rounded-3xl shadow-xl border border-amber-500/25 dark:border-amber-500/25 grid grid-cols-1 sm:grid-cols-4 gap-3 text-left mt-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Vehicle Type</label>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
               >
                 <option value="all">All Vehicles</option>
                 <option value="bike">🏍️ Bikes & Scooters</option>
@@ -142,7 +142,7 @@ export default function Home() {
               <select
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
               >
                 <option value="all">All Goa Locations</option>
                 <option value="Panaji">Panaji</option>
@@ -163,16 +163,16 @@ export default function Home() {
                 type="date"
                 value={searchDate}
                 onChange={(e) => setSearchDate(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"
               />
             </div>
 
             <div className="flex items-end">
               <button
                 onClick={handleHeroSearch}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 dark:from-cyan-500 dark:to-blue-600 hover:from-sky-500 text-white font-bold text-sm shadow-lg shadow-sky-600/25 flex items-center justify-center gap-2 transition-all"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all"
               >
-                <Search className="w-4 h-4" />
+                <Search className="w-4 h-4 text-slate-950" />
                 <span>Search Rides</span>
               </button>
             </div>

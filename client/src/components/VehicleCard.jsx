@@ -46,8 +46,8 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
           {/* Header & Rating */}
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="text-[11px] font-extrabold text-sky-600 dark:text-cyan-400 uppercase tracking-wide">{vehicle.brand}</span>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-cyan-400 transition-colors leading-snug">
+              <span className="text-[11px] font-extrabold text-amber-500 dark:text-amber-400 uppercase tracking-wide">{vehicle.brand}</span>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors leading-snug">
                 {vehicle.name}
               </h3>
             </div>
@@ -88,10 +88,10 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
 
           <button
             onClick={() => onBook(vehicle)}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-sky-600/20 flex items-center gap-1.5 transition-all"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 flex items-center gap-1.5 transition-all"
           >
             <span>Book Now</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
           </button>
         </div>
 

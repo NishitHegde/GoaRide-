@@ -30,12 +30,12 @@ export default function AnimatedBackground() {
     window.addEventListener('resize', handleResize);
     window.addEventListener('mousemove', handleMouseMove);
 
-    // GoaRide Theme Neon Star Color Palette
+    // GoaRide Sunset Gold & Midnight Luxury Color Palette
     const starColors = [
-      { r: 0, g: 210, b: 255, hex: '#00d2ff' },   // Neon Cyan
+      { r: 245, g: 158, b: 11, hex: '#f59e0b' },  // Sunset Gold
+      { r: 251, g: 191, b: 36, hex: '#fbbf24' },  // Amber Gold
+      { r: 6, g: 182, b: 212, hex: '#06b6d4' },   // Coastal Cyan
       { r: 56, g: 189, b: 248, hex: '#38bdf8' },  // Sky Blue
-      { r: 99, g: 102, b: 241, hex: '#6366f1' },  // Electric Indigo
-      { r: 249, g: 115, b: 22, hex: '#f97316' },  // Vibrant Orange
       { r: 255, g: 255, b: 255, hex: '#ffffff' }, // Pure Diamond White
     ];
 
