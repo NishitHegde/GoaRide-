@@ -122,7 +122,62 @@ export const handleAiChat = async (req, res) => {
           `• **Speed Limits**: Highway speed limit for 2-wheelers is 50 km/h and 70 km/h for cars.`;
       }
 
-      // SCOOTERS & BIKES
+      // 5. SECRET & HIDDEN GEMS OF GOA
+      else if (text.includes('hidden') || text.includes('secret') || text.includes('offbeat') || text.includes('waterfall') || text.includes('kakolem') || text.includes('netravali') || text.includes('chorla')) {
+        reply = `💎 **Secret & Offbeat Hidden Gems of Goa:**\n\n` +
+          `• **Kakolem Beach (Tiger Beach)**: A secluded private cove surrounded by lush green cliffs and a small freshwater stream emptying into the sea.\n` +
+          `• **Netravali Bubble Lake & Wildlife Sanctuary**: A serene temple tank in South Goa where bubbles continuously rise naturally from the lake bed.\n` +
+          `• **Salaulim Dam & Spillway**: A massive engineering marvel with a unique semi-circular 'duckbill' spillway (best visited July–Oct).\n` +
+          `• **Harvalem Waterfalls & Caves**: Ancient 6th-century rock-cut Buddhist caves near Sanquelim.\n` +
+          `• **Chorla Ghats Viewpoints**: Misty Western Ghats mountain pass on the Goa-Karnataka border with panoramic jungle canopy views.`;
+      }
+
+      // 6. CASINO & FLOATING GAMING GUIDE
+      else if (text.includes('casino') || text.includes('gambling') || text.includes('deltin') || text.includes('big daddy') || text.includes('poker') || text.includes('mandovi')) {
+        reply = `🎰 **Goa Floating Casino & Gaming Guide:**\n\n` +
+          `• **Deltin Royale**: Asia’s largest offshore gaming casino ship anchored on Mandovi River, Panaji. Features multi-level gaming floors, live performances & gourmet buffets.\n` +
+          `• **Big Daddy Casino**: Luxury offshore vessel with roulette, blackjack, andar bahar, and VIP lounge gaming.\n` +
+          `• **Majestic Pride & Casino Pride**: Popular floating casinos offering family entertainment, live dance shows & gaming packages.\n\n` +
+          `💡 *Dress Code: Smart casuals required (no shorts/flip-flops for male guests). Entry packages usually include chips, food & drinks.*`;
+      }
+
+      // 7. MARKETS, SHOPPING & SOUVENIRS
+      else if (text.includes('market') || text.includes('shopping') || text.includes('flea') || text.includes('cashew') || text.includes('feni') || text.includes('souvenir') || text.includes('spices')) {
+        reply = `🛍️ **Goa Flea Markets & Shopping Guide:**\n\n` +
+          `• **Anjuna Wednesday Flea Market**: Legendary beachside open market for bohemian clothes, handmade jewelry & souvenirs.\n` +
+          `• **Arpora Saturday Night Market**: Live music, global food stalls, designer clothes & vibrant neon night vibes.\n` +
+          `• **Mapusa Friday Produce Market**: Local market for authentic Goan spices, homemade sausages (Chorizo), dried fish & fresh fruits.\n` +
+          `• **Goan Souvenir Must-Buys**: Premium Goan Roasted Cashews, authentic Feni (Cashew/Coconut spirit), and hand-painted Portuguese Azulejo tiles.`;
+      }
+
+      // 8. CABS VS SELF-DRIVE RENTAL COMPARISON
+      else if (text.includes('cab') || text.includes('taxi') || text.includes('bus') || text.includes('transport') || text.includes('uber') || text.includes('ola') || text.includes('auto')) {
+        reply = `🚖 **Goa Transport Comparison — Why Renting Self-Drive Wins:**\n\n` +
+          `• **Uber / Ola Availability**: Uber & Ola do **NOT** operate in Goa.\n` +
+          `• **Local Taxis**: Local cabs charge ~₹1,500 – ₹2,500 for a single one-way airport transfer.\n` +
+          `• **GoaRide Self-Drive Scooter**: Just **₹450/day** for total freedom to explore all beaches, forts, and hidden cafes at your own pace!\n` +
+          `• **GoaRide Self-Drive Car**: Just **₹1,400/day** for AC comfort for group & family trips.\n\n` +
+          `💡 *All GoaRide vehicles come with 24/7 roadside assistance, 2 free helmets, and commercial yellow-plate insurance!*`;
+      }
+
+      // 9. SPICE PLANTATIONS & HERITAGE
+      else if (text.includes('spice') || text.includes('farm') || text.includes('heritage') || text.includes('fontainhas') || text.includes('church') || text.includes('cathedral')) {
+        reply = `🌿 **Spice Plantations & Cultural Heritage:**\n\n` +
+          `• **Sahakari & Tropical Spice Plantations (Ponda)**: Guided walks through cardamom, vanilla, and pepper plantations, elephant baths & traditional Goan buffet served on banana leaves.\n` +
+          `• **Fontainhas (Latin Quarter, Panaji)**: Brightly painted 19th-century Portuguese houses, narrow cobblestone alleys & cozy art cafes.\n` +
+          `• **UNESCO Heritage Churches (Old Goa)**: Basilica of Bom Jesus (relics of St. Francis Xavier) and Se Cathedral (largest church in Asia).`;
+      }
+
+      // 10. FESTIVALS & CELEBRATIONS
+      else if (text.includes('festival') || text.includes('carnival') || text.includes('shigmo') || text.includes('sunburn') || text.includes('sao joao') || text.includes('christmas')) {
+        reply = `🎉 **Goa Festivals & Cultural Celebrations:**\n\n` +
+          `• **Goa Carnival (Feb)**: 4-day colorful street parade led by King Momo with music, floats & street dances.\n` +
+          `• **Shigmo Festival (March)**: Traditional Goan Hindu spring festival with grand mythological float parades.\n` +
+          `• **Sao Joao (June 24)**: Unique monsoon festival where locals jump into wells wearing colorful flower crowns (Kopel).\n` +
+          `• **Sunburn EDM Festival & New Year (Dec)**: World-famous electronic music festival & beach fireworks!`;
+      }
+
+      // 11. SCOOTERS & BIKES
       else if (text.includes('scooter') || text.includes('activa') || text.includes('bike') || text.includes('scooty') || text.includes('enfield')) {
         const scooters = vehicles.filter((v) => v.category === 'Scooter' || v.type === 'bike');
         recommendedVehicles = scooters.slice(0, 3);
@@ -133,7 +188,7 @@ export const handleAiChat = async (req, res) => {
           `💡 *Tip: 2 free helmets and 24/7 roadside assistance are included with all bike rentals!*`;
       }
 
-      // CARS & SUVS
+      // 12. CARS & SUVS
       else if (text.includes('car') || text.includes('suv') || text.includes('thar') || text.includes('family') || text.includes('creta')) {
         const cars = vehicles.filter((v) => v.type === 'car');
         recommendedVehicles = cars.slice(0, 3);
@@ -144,7 +199,7 @@ export const handleAiChat = async (req, res) => {
           `💡 *Tip: Free airport pickup available at Dabolim Airport & Mopa Airport!*`;
       }
 
-      // ITINERARY / TRIP PLAN
+      // 13. ITINERARY / TRIP PLAN
       else if (text.includes('itinerary') || text.includes('3-day') || text.includes('5-day') || text.includes('plan') || text.includes('schedule')) {
         reply = `🌴 **Ultimate Goa Travel Itinerary:**\n\n` +
           `📍 **Day 1: North Goa Beaches & Nightlife**\n` +
