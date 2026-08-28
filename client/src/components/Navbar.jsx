@@ -24,26 +24,25 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           
           {/* Logo */}
-          <Link to="/" className="logo-wrapper flex items-center gap-2.5 group select-none">
-            {/* Electric Sunset & Palm Icon Box */}
-            <div className="logo-icon-box relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-950/80 border border-amber-500/40 overflow-hidden shadow-lg transition-transform">
-              {/* Glowing Golden Sunset Disc */}
-              <div className="absolute inset-1 rounded-xl bg-gradient-to-t from-amber-500/20 via-orange-500/10 to-transparent pointer-events-none" />
-              {/* Floating Palm & Bike */}
-              <div className="flex items-center gap-0.5 text-sm z-10">
-                <span className="anim-palm text-xs" role="img" aria-label="palm tree">🌴</span>
-                <span className="anim-bike text-sm" role="img" aria-label="bike">🏍️</span>
-              </div>
-              {/* Animated Wave / Road Line */}
-              <div className="animated-road-line absolute bottom-1 left-0 right-0 h-[2.5px] opacity-90" />
+          <Link to="/" className="goaride-boxed-logo group select-none flex items-center gap-2.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl">
+            {/* Left: Sleek Line-Art Car Icon Container */}
+            <div className="relative flex items-center justify-center p-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 border border-emerald-500/30 dark:border-[#00eaff]/40 shadow-inner">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 anim-car text-cyan-600 dark:text-[#00eaff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-3.4-2.2-4.2C13.1 5.2 12 5 11 5H7C5.8 5 4.8 5.8 4.3 7L2.4 11.2C2.1 11.8 2 12.4 2 13v3c0 .6.4 1 1 1h2" />
+                <circle cx="7" cy="17" r="2" className="stroke-emerald-600 dark:stroke-[#00ff9d]" />
+                <circle cx="17" cy="17" r="2" className="stroke-emerald-600 dark:stroke-[#00ff9d]" />
+                <path d="M5 11h14" className="stroke-cyan-500/60 dark:stroke-[#00eaff]/60" />
+                <path d="M9 5v5" />
+                <path d="M13 3.5c1 0 2 .5 2.5 1.5M13 3.5c-.8.8-1.5 2-1.5 3M13 3.5c.5-.8 1.8-1.2 2.8-.8" className="stroke-emerald-500 dark:stroke-[#00ff9d] stroke-[1.2]" />
+              </svg>
             </div>
 
-            {/* Wordmark + Tagline */}
+            {/* Right: Wordmark + Tagline */}
             <div className="flex flex-col justify-center leading-none">
-              <span className="neon-goaride-text text-xl sm:text-2xl tracking-tight">
+              <span className="goaride-wordmark text-lg sm:text-xl font-black tracking-tight">
                 GoaRide
               </span>
-              <span className="neon-tagline mt-0.5 tracking-wider font-extrabold">
+              <span className="goaride-boxed-tagline mt-0.5 tracking-wider font-extrabold">
                 RIDE • EXPLORE • DISCOVER
               </span>
             </div>

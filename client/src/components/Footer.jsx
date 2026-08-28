@@ -9,19 +9,22 @@ export default function Footer() {
         
         {/* Brand Logo & Tagline */}
         <div className="flex items-center gap-3">
-          <Link to="/" className="logo-wrapper flex items-center gap-2 group select-none">
-            <div className="logo-icon-box relative flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-950/80 border border-amber-500/40 overflow-hidden shadow-md">
-              <div className="flex items-center gap-0.5 text-xs z-10">
-                <span className="anim-palm text-[10px]" role="img" aria-label="palm tree">🌴</span>
-                <span className="anim-bike text-xs" role="img" aria-label="bike">🏍️</span>
-              </div>
-              <div className="animated-road-line absolute bottom-0.5 left-0 right-0 h-[2px] opacity-90" />
+          <Link to="/" className="goaride-boxed-logo group select-none flex items-center gap-2 px-3 py-1.5 rounded-xl">
+            <div className="relative flex items-center justify-center p-1 rounded-lg bg-slate-100 dark:bg-slate-900/90 border border-emerald-500/30 dark:border-[#00eaff]/40 shadow-inner">
+              <svg className="w-4 h-4 anim-car text-cyan-600 dark:text-[#00eaff]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-3.4-2.2-4.2C13.1 5.2 12 5 11 5H7C5.8 5 4.8 5.8 4.3 7L2.4 11.2C2.1 11.8 2 12.4 2 13v3c0 .6.4 1 1 1h2" />
+                <circle cx="7" cy="17" r="2" className="stroke-emerald-600 dark:stroke-[#00ff9d]" />
+                <circle cx="17" cy="17" r="2" className="stroke-emerald-600 dark:stroke-[#00ff9d]" />
+                <path d="M5 11h14" className="stroke-cyan-500/60 dark:stroke-[#00eaff]/60" />
+                <path d="M9 5v5" />
+                <path d="M13 3.5c1 0 2 .5 2.5 1.5M13 3.5c-.8.8-1.5 2-1.5 3M13 3.5c.5-.8 1.8-1.2 2.8-.8" className="stroke-emerald-500 dark:stroke-[#00ff9d] stroke-[1.2]" />
+              </svg>
             </div>
             <div className="flex flex-col justify-center leading-none">
-              <span className="neon-goaride-text text-lg tracking-tight">
+              <span className="goaride-wordmark text-base font-black tracking-tight">
                 GoaRide
               </span>
-              <span className="neon-tagline text-[6.5px] mt-0.5 tracking-wider font-extrabold">
+              <span className="goaride-boxed-tagline text-[6px] mt-0.5 tracking-wider font-extrabold">
                 RIDE • EXPLORE • DISCOVER
               </span>
             </div>
