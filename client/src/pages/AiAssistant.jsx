@@ -695,14 +695,14 @@ export default function AiAssistant() {
 
       {/* MODE 3: BUDGET METER */}
       {activeMode === 'budget' && (
-        <div className="glass-panel p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 space-y-6 shadow-2xl text-slate-900 dark:text-white">
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 space-y-6 shadow-2xl text-slate-900 dark:text-white">
           <div className="flex items-center gap-3.5 border-b border-slate-200 dark:border-slate-800 pb-4">
-            <div className="p-3.5 rounded-2xl bg-sky-500/15 text-sky-600 dark:text-cyan-400 border border-sky-500/30">
+            <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
               <Calculator className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-black">AI Trip Budget Calculator</h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Adjust trip duration and budget limits to view exact rental costs and savings.</p>
+              <h2 className="text-xl sm:text-2xl font-black">AI Trip Budget & Fleet Recommender</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Set your trip duration and max budget target to find real matched fleet vehicles in Goa.</p>
             </div>
           </div>
 
@@ -722,67 +722,152 @@ export default function AiAssistant() {
               />
               <div className="flex justify-between text-[10px] text-slate-500">
                 <span>1 Day</span>
-                <span>7 Days (10% Discount)</span>
+                <span>7 Days (10% Off)</span>
                 <span>14 Days</span>
               </div>
             </div>
 
             <div className="space-y-3">
               <div className="flex justify-between">
-                <label className="text-slate-700 dark:text-slate-300">Max Budget Target:</label>
+                <label className="text-slate-700 dark:text-slate-300 font-bold">Max Target Budget:</label>
                 <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm">₹{maxBudget.toLocaleString()}</span>
               </div>
               <input
                 type="range"
-                min="1000"
-                max="25000"
+                min="500"
+                max="35000"
                 step="500"
                 value={maxBudget}
                 onChange={(e) => setMaxBudget(Number(e.target.value))}
-                className="w-full accent-sky-600 cursor-pointer h-2 bg-slate-200 dark:bg-slate-800 rounded-lg"
+                className="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-800 rounded-lg"
               />
               <div className="flex justify-between text-[10px] text-slate-500">
-                <span>₹1,000</span>
-                <span>₹12,000</span>
-                <span>₹25,000</span>
+                <span>₹500</span>
+                <span>₹15,000</span>
+                <span>₹35,000</span>
               </div>
             </div>
           </div>
 
-          {/* Budget Meter Result */}
-          <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4 shadow-md">
-            <h3 className="font-extrabold text-sm text-sky-600 dark:text-cyan-400 flex items-center gap-2">
-              <Sparkles className="w-4 h-4" /> Recommended Vehicle Budget for {budgetDays} Days:
-            </h3>
-            
-            <div className="space-y-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <div className="flex justify-between">
-                <span>Suggested Scooter Rental ({budgetDays} days @ ₹450/day):</span>
-                <span className="font-bold text-slate-900 dark:text-white">₹{budgetDays * 450}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Estimated Fuel Allowance:</span>
-                <span className="font-bold text-slate-900 dark:text-white">₹{budgetDays * 180}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Refundable Security Deposit:</span>
-                <span className="font-bold text-amber-600 dark:text-amber-400">₹1,000</span>
-              </div>
-              {budgetDays >= 7 && (
-                <div className="flex justify-between text-emerald-600 font-bold">
-                  <span>Weekly Rental Savings (10% Off):</span>
-                  <span>-₹{Math.round(budgetDays * 450 * 0.1)}</span>
+          {/* REAL FLEET MATCHED VEHICLE CARD RECOMMENDATION */}
+          {(() => {
+            if (!fleetVehicles || fleetVehicles.length === 0) {
+              return (
+                <div className="p-6 text-center text-slate-500 font-bold">Loading real fleet inventory...</div>
+              );
+            }
+
+            // Calculate max daily budget allocation for vehicle
+            const isWeeklyDiscount = budgetDays >= 7;
+            const discountMultiplier = isWeeklyDiscount ? 0.9 : 1;
+
+            // Filter vehicles where (pricePerDay * budgetDays * discount) <= maxBudget
+            const affordableVehicles = fleetVehicles.filter(v => {
+              const totalRental = v.pricePerDay * budgetDays * discountMultiplier;
+              return totalRental <= maxBudget;
+            });
+
+            let bestMatch = null;
+            let exceedsBudget = false;
+
+            if (affordableVehicles.length > 0) {
+              // Pick highest tier vehicle fitting the max budget target
+              bestMatch = [...affordableVehicles].sort((a, b) => b.pricePerDay - a.pricePerDay)[0];
+            } else {
+              // Pick cheapest available vehicle in fleet
+              bestMatch = [...fleetVehicles].sort((a, b) => a.pricePerDay - b.pricePerDay)[0];
+              exceedsBudget = true;
+            }
+
+            const subtotal = Math.round(bestMatch.pricePerDay * budgetDays * discountMultiplier);
+            const estFuel = bestMatch.type === 'bike' ? budgetDays * 150 : budgetDays * 400;
+            const deposit = bestMatch.securityDeposit || 1000;
+            const grandTotal = subtotal + estFuel;
+
+            return (
+              <div className="space-y-6 pt-2">
+                <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/90 border border-amber-500/30 space-y-5 shadow-xl">
+                  
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-4">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-700">
+                        {exceedsBudget ? '⚠️ Lowest Available Fleet Option' : '✨ Best Matched GoaRide Fleet Vehicle'}
+                      </span>
+                      <h3 className="text-lg font-black text-slate-900 dark:text-white mt-1.5 flex items-center gap-2">
+                        {bestMatch.type === 'bike' ? '🏍️' : '🚗'} {bestMatch.name} <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">({bestMatch.brand})</span>
+                      </h3>
+                    </div>
+
+                    <div className="text-left sm:text-right">
+                      <span className="text-xs text-slate-500 font-bold block">Rate per Day</span>
+                      <span className="text-xl font-black text-sky-600 dark:text-cyan-400">₹{bestMatch.pricePerDay}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+                    {/* Vehicle Image Container */}
+                    <div className="relative h-44 sm:h-48 rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/50 shadow-md group">
+                      <img
+                        src={bestMatch.image}
+                        alt={bestMatch.name}
+                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = bestMatch.type === 'bike' 
+                            ? 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&q=80&w=800'
+                            : 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800';
+                        }}
+                      />
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-md text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                        📍 {bestMatch.location}
+                      </div>
+                    </div>
+
+                    {/* Breakdown */}
+                    <div className="md:col-span-2 space-y-3 text-xs font-medium">
+                      <div className="flex justify-between border-b border-slate-200/60 dark:border-slate-800 pb-1.5">
+                        <span className="text-slate-600 dark:text-slate-400">Base Vehicle Rental ({budgetDays} days @ ₹{bestMatch.pricePerDay}/day):</span>
+                        <span className="font-bold text-slate-900 dark:text-white">₹{bestMatch.pricePerDay * budgetDays}</span>
+                      </div>
+
+                      {isWeeklyDiscount && (
+                        <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold border-b border-slate-200/60 dark:border-slate-800 pb-1.5">
+                          <span>Weekly Rental Savings (10% Off):</span>
+                          <span>-₹{Math.round(bestMatch.pricePerDay * budgetDays * 0.1)}</span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between border-b border-slate-200/60 dark:border-slate-800 pb-1.5">
+                        <span className="text-slate-600 dark:text-slate-400">Est. Trip Fuel Expenses (~30km/day):</span>
+                        <span className="font-bold text-slate-900 dark:text-white">₹{estFuel}</span>
+                      </div>
+
+                      <div className="flex justify-between border-b border-slate-200/60 dark:border-slate-800 pb-1.5">
+                        <span className="text-slate-600 dark:text-slate-400">Refundable Security Deposit:</span>
+                        <span className="font-bold text-amber-600 dark:text-amber-400">₹{deposit}</span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                        <div>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Estimated Total Expense</span>
+                          <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">₹{grandTotal.toLocaleString()}</span>
+                        </div>
+
+                        <button
+                          onClick={() => setSelectedVehicle(bestMatch)}
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-lg flex items-center justify-center gap-2 transform active:scale-95 transition-all"
+                        >
+                          <span>Book {bestMatch.name} Now</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
-              )}
-            </div>
-
-            <div className="border-t border-slate-200 dark:border-slate-800 pt-3 flex justify-between text-sm font-bold">
-              <span>Estimated Total Payable Amount:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 text-xl font-black">
-                ₹{Math.round(budgetDays * 450 * (budgetDays >= 7 ? 0.9 : 1) + budgetDays * 180)}
-              </span>
-            </div>
-          </div>
+              </div>
+            );
+          })()}
 
         </div>
       )}
