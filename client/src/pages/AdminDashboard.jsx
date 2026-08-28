@@ -378,51 +378,59 @@ export default function AdminDashboard() {
           </div>
 
           {/* Revenue KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider">Total Revenue</span>
-                <Wallet className="w-4 h-4 text-emerald-500" />
-              </div>
-              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                ₹{bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0).toLocaleString()}
-              </span>
-              <span className="text-[10px] text-slate-500 font-bold block">Gross fleet booking earnings</span>
-            </div>
+          {(() => {
+            const activeNonCancelled = bookings.filter(b => (b.bookingStatus || b.status || '').toUpperCase() !== 'CANCELLED' && (b.bookingStatus || b.status || '').toUpperCase() !== 'CANCELED');
+            const calculatedTotalRevenue = activeNonCancelled.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+            const calculatedAvgValue = activeNonCancelled.length > 0 ? Math.round(calculatedTotalRevenue / activeNonCancelled.length) : 0;
 
-            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider">Avg. Booking Value</span>
-                <TrendingUp className="w-4 h-4 text-sky-500" />
-              </div>
-              <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">
-                ₹{bookings.length > 0 ? Math.round(bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0) / bookings.length) : 0}
-              </span>
-              <span className="text-[10px] text-slate-500 font-bold block">Average earnings per rental trip</span>
-            </div>
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Total Revenue</span>
+                    <Wallet className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                    ₹{calculatedTotalRevenue.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-bold block">Gross active fleet earnings (Excl. Cancelled)</span>
+                </div>
 
-            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider">Active Rentals</span>
-                <Car className="w-4 h-4 text-orange-500" />
-              </div>
-              <span className="text-2xl font-black text-orange-600 dark:text-orange-400">
-                {bookings.filter(b => (b.bookingStatus || b.status) === 'ACTIVE' || (b.bookingStatus || b.status) === 'CONFIRMED').length} Vehicles
-              </span>
-              <span className="text-[10px] text-slate-500 font-bold block">Currently out on Goa roads</span>
-            </div>
+                <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Avg. Booking Value</span>
+                    <TrendingUp className="w-4 h-4 text-sky-500" />
+                  </div>
+                  <span className="text-2xl font-black text-sky-600 dark:text-cyan-400">
+                    ₹{calculatedAvgValue.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-bold block">Average earnings per active trip</span>
+                </div>
 
-            <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider">Deposits Held</span>
-                <Shield className="w-4 h-4 text-purple-500" />
+                <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Active Rentals</span>
+                    <Car className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <span className="text-2xl font-black text-orange-600 dark:text-orange-400">
+                    {bookings.filter(b => (b.bookingStatus || b.status) === 'ACTIVE' || (b.bookingStatus || b.status) === 'CONFIRMED').length} Vehicles
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-bold block">Currently out on Goa roads</span>
+                </div>
+
+                <div className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 space-y-2 shadow-sm">
+                  <div className="flex items-center justify-between text-slate-500">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Deposits Held</span>
+                    <Shield className="w-4 h-4 text-purple-500" />
+                  </div>
+                  <span className="text-2xl font-black text-purple-600 dark:text-purple-400">
+                    ₹{vehicles.reduce((acc, v) => acc + (v.securityDeposit || 1000), 0).toLocaleString()}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-bold block">Security deposit escrow pool</span>
+                </div>
               </div>
-              <span className="text-2xl font-black text-purple-600 dark:text-purple-400">
-                ₹{vehicles.reduce((acc, v) => acc + (v.securityDeposit || 1000), 0).toLocaleString()}
-              </span>
-              <span className="text-[10px] text-slate-500 font-bold block">Security deposit escrow pool</span>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Breakdown Section: Vehicle Category & Hub Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -434,9 +442,10 @@ export default function AdminDashboard() {
               </h4>
               <div className="space-y-3">
                 {['Calangute', 'Baga', 'Panaji', 'Dabolim Airport', 'Anjuna'].map((hub, idx) => {
-                  const hubBookings = bookings.filter(b => (b.pickupLocation || '').toLowerCase().includes(hub.toLowerCase()));
+                  const activeNonCancelled = bookings.filter(b => (b.bookingStatus || b.status || '').toUpperCase() !== 'CANCELLED' && (b.bookingStatus || b.status || '').toUpperCase() !== 'CANCELED');
+                  const hubBookings = activeNonCancelled.filter(b => (b.pickupLocation || '').toLowerCase().includes(hub.toLowerCase()));
                   const hubRev = hubBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
-                  const percentage = Math.min(100, Math.max(15, (hubBookings.length / (bookings.length || 1)) * 100));
+                  const percentage = Math.min(100, Math.max(15, (hubBookings.length / (activeNonCancelled.length || 1)) * 100));
 
                   return (
                     <div key={idx} className="space-y-1 text-xs">

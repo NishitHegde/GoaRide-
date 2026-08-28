@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import VehicleCard from '../components/VehicleCard';
 import BookingModal from '../components/BookingModal';
-import { Calendar, Heart, User, Star, MapPin, Camera, Upload, Check, Navigation, ShieldCheck, Radio } from 'lucide-react';
+import { Calendar, Heart, User, Star, MapPin, Camera, Upload, Check, Navigation, ShieldCheck, Radio, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Bookings() {
@@ -79,6 +79,18 @@ export default function Bookings() {
       fetchMyBookings();
     } catch (error) {
       showToast(error.response?.data?.message || 'Failed to cancel booking', 'error');
+    }
+  };
+
+  const handleDeleteBookingRecord = async (bookingId) => {
+    if (!window.confirm('Remove this cancelled booking record permanently from your list?')) return;
+    try {
+      await API.delete(`/bookings/${bookingId}`);
+      showToast('Cancelled booking record deleted', 'info');
+      fetchMyBookings();
+    } catch (error) {
+      setBookings(prev => prev.filter(b => b._id !== bookingId));
+      showToast('Booking record removed from list', 'info');
     }
   };
 
@@ -297,6 +309,18 @@ export default function Bookings() {
                             className="px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-xs font-bold hover:bg-rose-200 transition-colors"
                           >
                             Cancel
+                          </button>
+                        )}
+
+                        {/* DELETE CANCELLED BOOKING BUTTON */}
+                        {isCancelled && (
+                          <button
+                            onClick={() => handleDeleteBookingRecord(b._id)}
+                            className="px-3.5 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-950/90 hover:bg-rose-200 dark:hover:bg-rose-900 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/40 text-xs font-black transition-all flex items-center gap-1.5 shadow-sm"
+                            title="Remove cancelled booking record from list"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                            <span>Remove Record</span>
                           </button>
                         )}
 
