@@ -1,5 +1,42 @@
 import Vehicle from '../models/Vehicle.js';
 
+// Helper function to call Google Gemini API with fallback models
+async function callGoogleGeminiApi(apiKey, userPrompt) {
+  const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+  
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are GoaRide AI Neural Assistant, an expert travel guide & rental concierge. Provide a direct, accurate, enthusiastic, and comprehensive answer specifically addressing the user's question. Use clear formatting, bullet points, and emojis where appropriate.\n\nUser Question: ${userPrompt}`
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.trim()) {
+          return text.trim();
+        }
+      }
+    } catch (e) {
+      console.error(`Gemini API error on ${model}:`, e.message);
+    }
+  }
+  return null;
+}
+
 export const handleAiChat = async (req, res) => {
   try {
     const { prompt, days, budget, tripType } = req.body;
@@ -18,8 +55,21 @@ export const handleAiChat = async (req, res) => {
     // Check for Google Gemini API key in environment variables
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
-    // 1. SPECIFIC ACTION: FUEL COST CALCULATOR
-    if (text.includes('fuel') || text.includes('petrol') || text.includes('cost to drive') || text.includes('mileage') || (text.includes('dudhsagar') && text.includes('cost'))) {
+    // 1. PRIORITIZE GOOGLE GEMINI API FIRST TO ANSWER THE USER'S EXACT QUESTION
+    if (apiKey && rawPrompt.length > 1) {
+      const geminiReply = await callGoogleGeminiApi(apiKey, rawPrompt);
+      if (geminiReply) {
+        reply = geminiReply;
+        if (text.includes('bike') || text.includes('scooter') || text.includes('activa') || text.includes('enfield')) {
+          recommendedVehicles = vehicles.filter(v => v.type === 'bike').slice(0, 3);
+        } else if (text.includes('car') || text.includes('suv') || text.includes('thar') || text.includes('creta')) {
+          recommendedVehicles = vehicles.filter(v => v.type === 'car').slice(0, 3);
+        }
+      }
+    }
+
+    // 2. SPECIFIC ACTION: FUEL COST CALCULATOR (Fallback if Gemini API not used)
+    if (!reply && (text.includes('fuel') || text.includes('petrol') || text.includes('cost to drive') || text.includes('mileage') || (text.includes('dudhsagar') && text.includes('cost')))) {
       reply = `⛽ **AI Goa Road Trip Fuel & Range Estimator:**\n\n` +
         `• **Calangute ➔ Dudhsagar Waterfalls (82 km)**:\n` +
         `  - Scooter (Activa 6G): ~1.8 Liters (₹190)\n` +
@@ -42,40 +92,7 @@ export const handleAiChat = async (req, res) => {
         `• **Live Map Assistance**: Enable GPS on your Live Map tab so roadside support vehicles reach you within 20-30 minutes.`;
     }
 
-    // 3. QUERY GOOGLE GEMINI API FIRST (IF API KEY PRESENT) FOR LIVE REAL-TIME ANSWER TO ANY USER QUESTION
-    else if (apiKey && rawPrompt.length > 2) {
-      try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-        const systemInstruction = "You are GoaRide AI Neural Assistant, an expert Goa travel guide & rental concierge. Provide helpful, accurate, enthusiastic answers about Goa places, food, beaches, routes, weather, rental advice, or any general question asked by the user. Use clear bullet points and emojis.";
-        
-        const response = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [{ text: `${systemInstruction}\nUser Question: ${rawPrompt}` }]
-            }]
-          })
-        });
-
-        if (response.ok) {
-          const geminiData = await response.json();
-          const generatedText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (generatedText) {
-            reply = generatedText;
-            if (text.includes('bike') || text.includes('scooter')) {
-              recommendedVehicles = vehicles.filter(v => v.type === 'bike').slice(0, 3);
-            } else if (text.includes('car') || text.includes('suv')) {
-              recommendedVehicles = vehicles.filter(v => v.type === 'car').slice(0, 3);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Google Gemini API query error:', err.message);
-      }
-    }
-
-    // 4. DEEP CONTEXTUAL KNOWLEDGE ENGINE (Comprehensive answer fallback for any user prompt)
+    // 3. DEEP CONTEXTUAL KNOWLEDGE ENGINE (Comprehensive answer fallback for any user prompt)
     if (!reply) {
       // FOOD / RESTAURANTS / NIGHTLIFE
       if (text.includes('food') || text.includes('restaurant') || text.includes('eat') || text.includes('nightlife') || text.includes('tito') || text.includes('seafood') || text.includes('club') || text.includes('pub') || text.includes('drink')) {
