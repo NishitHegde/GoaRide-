@@ -84,11 +84,11 @@ export default function VehicleDetails() {
         
         {/* Left Column: Big Image Gallery */}
         <div className="space-y-4">
-          <div className="relative rounded-3xl overflow-hidden border border-amber-500/25 dark:border-amber-500/25 shadow-xl h-96 w-full flex items-center justify-center p-6 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-200/50 dark:from-[#0d1222] dark:via-[#090d18] dark:to-[#070913]">
+          <div className="relative rounded-3xl overflow-hidden border border-amber-500/25 dark:border-amber-500/25 shadow-xl h-80 sm:h-[420px] w-full bg-slate-900 group">
             <img
               src={vehicle.image}
               alt={vehicle.name}
-              className="max-h-full max-w-full w-auto h-auto object-contain filter drop-shadow-xl"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = vehicle.type === 'bike' 
@@ -96,9 +96,10 @@ export default function VehicleDetails() {
                   : 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=800';
               }}
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20 pointer-events-none" />
             <button
               onClick={toggleFavorite}
-              className="absolute top-4 right-4 p-2.5 rounded-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md shadow-md hover:bg-white transition-all text-slate-700 dark:text-slate-300 hover:text-rose-500 z-10"
+              className="absolute top-4 right-4 p-2.5 rounded-full bg-slate-900/70 backdrop-blur-md shadow-md hover:bg-slate-900 transition-all text-slate-200 hover:text-rose-400 z-10"
             >
               <Heart className={`w-5 h-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
             </button>

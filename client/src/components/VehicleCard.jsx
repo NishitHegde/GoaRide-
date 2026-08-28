@@ -8,11 +8,11 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
     <div className="glass-card rounded-3xl overflow-hidden flex flex-col justify-between group">
       
       {/* Image & Badge Overlay */}
-      <div className="relative h-52 w-full flex items-center justify-center p-3 bg-gradient-to-b from-slate-100/90 via-slate-100/50 to-slate-200/40 dark:from-[#0d1222] dark:via-[#090d18] dark:to-[#070913] overflow-hidden group">
+      <div className="relative h-56 sm:h-60 w-full overflow-hidden bg-slate-900 group">
         <img
           src={vehicle.image}
           alt={vehicle.name}
-          className="max-h-full max-w-full w-auto h-auto object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = vehicle.type === 'bike' 
@@ -21,26 +21,29 @@ export default function VehicleCard({ vehicle, isFavorite, onToggleFavorite, onB
           }}
         />
 
+        {/* Dark Gradient Backdrop for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/30 pointer-events-none" />
+
         {/* Favorite Heart Button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(vehicle._id);
           }}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md shadow-md hover:bg-white dark:hover:bg-slate-900 transition-all text-slate-700 dark:text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 z-10"
+          className="absolute top-3 right-3 p-2 rounded-full bg-slate-900/70 backdrop-blur-md shadow-md hover:bg-slate-900 transition-all text-slate-200 hover:text-rose-400 z-10"
           title={isFavorite ? 'Remove Favorite' : 'Add to Favorites'}
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
 
         {/* Type Pill */}
-        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-900/85 dark:bg-slate-950/90 backdrop-blur-md text-amber-400 text-[11px] font-black uppercase tracking-wider border border-amber-500/30 z-10">
+        <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md text-amber-400 text-[11px] font-black uppercase tracking-wider border border-amber-500/40 z-10">
           {vehicle.type === 'bike' ? '🏍️ Bike' : '🚗 Car'}
         </div>
 
         {/* Location Badge */}
-        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1 shadow-sm border border-slate-200/50 dark:border-slate-700/50 z-10">
-          <MapPin className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+        <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md text-slate-100 text-xs font-bold flex items-center gap-1 shadow-sm border border-slate-700/50 z-10">
+          <MapPin className="w-3.5 h-3.5 text-amber-400" />
           <span>{vehicle.location}</span>
         </div>
       </div>
