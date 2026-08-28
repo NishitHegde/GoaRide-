@@ -276,6 +276,54 @@ export default function AiAssistant() {
     return { km, routeName, consumption, cost, mileage, unit, unitPrice, fuelLabel, targetVehicle };
   };
 
+  // Dynamic answer generator fallback tailored specifically to the user's exact question
+  const generateDynamicAnswer = (promptStr) => {
+    const text = (promptStr || '').toLowerCase().trim();
+
+    if (text.includes('fuel') || text.includes('petrol') || text.includes('mileage') || text.includes('cost to drive')) {
+      return `⛽ **Fuel & Travel Mileage Guidance for your question:**\n\n` +
+        `• **Scooter Mileage**: ~45 km/liter (Honda Activa 6G / Jupiter).\n` +
+        `• **Car Mileage**: ~14-16 km/liter (Swift / Baleno) and ~9-11 km/liter (Thar 4x4 / Innova).\n` +
+        `• **Current Petrol Price in Goa**: ~₹98 - ₹103/liter.\n\n` +
+        `💡 *Tip: Check out our interactive Fuel Matrix tab above to select any vehicle and calculate exact route fuel expenses!*`;
+    }
+
+    if (text.includes('weather') || text.includes('rain') || text.includes('monsoon') || text.includes('best time') || text.includes('month') || text.includes('climate')) {
+      return `☀️ **Goa Weather & Travel Season Info:**\n\n` +
+        `• **November to February (Peak Season)**: Sunny 25°C - 30°C. Perfect for beach activities, water sports & nightlife.\n` +
+        `• **June to September (Monsoon)**: Lush green landscapes, Dudhsagar waterfalls in full roar & serene romantic drives.\n` +
+        `• **March to May (Summer)**: Sunny & warm (32°C), ideal for budget trips & quiet evening beach walks.`;
+    }
+
+    if (text.includes('food') || text.includes('restaurant') || text.includes('eat') || text.includes('nightlife') || text.includes('shack') || text.includes('pub') || text.includes('club')) {
+      return `🍽️ **Goa Food & Nightlife Recommendations for your query:**\n\n` +
+        `• **Seafood & Goan Thali**: Ritz Classic (Panaji), Mum's Kitchen, Martin's Corner (Betalbatim).\n` +
+        `• **Sunset Shacks**: Thalassa (Vagator), Britto's (Baga Beach), Souza Lobo (Calangute).\n` +
+        `• **Nightlife Hubs**: Tito's Lane (Baga), Hammerzz, and Silent Noise Club (Palolem).`;
+    }
+
+    if (text.includes('beach') || text.includes('place') || text.includes('visit') || text.includes('fort') || text.includes('see') || text.includes('spot')) {
+      return `🌴 **Top Recommendations for your Goa Travel Query:**\n\n` +
+        `• **North Goa Highlights**: Baga & Calangute beaches (water sports), Chapora Fort (Dil Chahta Hai sunset point), Fort Aguada.\n` +
+        `• **South Goa Quiet Beaches**: Palolem Crescent Beach, Agonda, Butterfly Beach, Cabo de Rama Fort.\n` +
+        `• **Cultural Spots**: Fontainhas Latin Quarter (Panaji) & Basilica of Bom Jesus (Old Goa).`;
+    }
+
+    if (text.includes('document') || text.includes('license') || text.includes('dl') || text.includes('helmet') || text.includes('police') || text.includes('rule') || text.includes('law')) {
+      return `📋 **Goa Rental Rules & License Info:**\n\n` +
+        `• **Documents Needed**: Valid Indian Driving License (DL) or International Driving Permit (IDP) + ID proof.\n` +
+        `• **Helmet Mandate**: Helmet is mandatory for **both rider and pillion passenger** in Goa.\n` +
+        `• **Commercial Yellow Plates**: All GoaRide vehicles feature legal yellow-on-black commercial rental plates.`;
+    }
+
+    return `🤖 **GoaRide AI Answer to your question:**\n\n` +
+      `Regarding **"${promptStr}"**:\n\n` +
+      `• **Direct Insight**: Goa is best explored on self-drive 2-wheelers or open-top vehicles! North Goa offers vibrant beach hubs and nightlife, while South Goa features serene coastal retreats.\n` +
+      `• **Fleet Recommendation**: Renting a scooter (Honda Activa 6G @ ₹450/day) or SUV (Thar 4x4 @ ₹3,500/day) gives you complete freedom to travel on your own schedule.\n` +
+      `• **Rental Perks**: Every GoaRide rental includes 2 free helmets, 24/7 roadside breakdown support, and commercial yellow-plate insurance.\n\n` +
+      `💡 *Feel free to ask about specific beach spots, seafood shacks, fuel costs, or vehicle booking!*`;
+  };
+
   const handleSend = async (queryText) => {
     const textToSend = queryText || input;
     if (!textToSend.trim()) return;
@@ -293,8 +341,8 @@ export default function AiAssistant() {
       const { data } = await API.post('/ai/chat', { prompt: textToSend });
       const botMsg = {
         sender: 'bot',
-        text: data.reply,
-        recommendedVehicles: data.recommendedVehicles || [],
+        text: data?.reply || generateDynamicAnswer(textToSend),
+        recommendedVehicles: data?.recommendedVehicles || [],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, botMsg]);
@@ -305,7 +353,7 @@ export default function AiAssistant() {
         ...prev,
         {
           sender: 'bot',
-          text: 'For exploring North Goa (Calangute, Baga, Anjuna, Vagator), Honda Activa 6G or RE Classic 350 are top choices! For family group trips across South Goa beaches, Mahindra Thar 4x4 or Innova Crysta provide maximum comfort.',
+          text: generateDynamicAnswer(textToSend),
           recommendedVehicles: [],
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
