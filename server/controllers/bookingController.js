@@ -193,7 +193,7 @@ export const updateBookingStatus = async (req, res) => {
   }
 };
 
-// @desc Cancel booking (User or Admin)
+// @desc Cancel or Permanently Delete booking (User or Admin)
 // @route DELETE /api/bookings/:id
 export const cancelBooking = async (req, res) => {
   try {
@@ -204,9 +204,16 @@ export const cancelBooking = async (req, res) => {
     }
 
     if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'ADMIN') {
-      return res.status(403).json({ message: 'Not authorized to cancel this booking' });
+      return res.status(403).json({ message: 'Not authorized to modify this booking' });
     }
 
+    // If booking is ALREADY cancelled or permanent deletion requested, delete document permanently from MongoDB
+    if (booking.bookingStatus === 'CANCELLED' || booking.bookingStatus === 'CANCELED' || req.query.permanent === 'true') {
+      await Booking.findByIdAndDelete(req.params.id);
+      return res.json({ message: 'Booking record deleted permanently', deletedId: req.params.id });
+    }
+
+    // Otherwise, set bookingStatus to CANCELLED
     booking.bookingStatus = 'CANCELLED';
     await booking.save();
 

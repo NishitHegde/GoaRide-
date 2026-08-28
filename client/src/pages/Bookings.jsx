@@ -85,9 +85,9 @@ export default function Bookings() {
   const handleDeleteBookingRecord = async (bookingId) => {
     if (!window.confirm('Remove this cancelled booking record permanently from your list?')) return;
     try {
-      await API.delete(`/bookings/${bookingId}`);
-      showToast('Cancelled booking record deleted', 'info');
-      fetchMyBookings();
+      setBookings(prev => prev.filter(b => b._id !== bookingId));
+      await API.delete(`/bookings/${bookingId}?permanent=true`);
+      showToast('Cancelled booking record removed permanently', 'info');
     } catch (error) {
       setBookings(prev => prev.filter(b => b._id !== bookingId));
       showToast('Booking record removed from list', 'info');
