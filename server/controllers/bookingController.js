@@ -80,8 +80,8 @@ export const createBooking = async (req, res) => {
       taxes,
       discount,
       totalAmount,
-      paymentStatus: 'PAID', // Default to PAID in test/demo mode
-      bookingStatus: 'CONFIRMED',
+      paymentStatus: 'UNPAID',
+      bookingStatus: 'PENDING',
       trackingId,
       notes: notes || '',
     });

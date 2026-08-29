@@ -181,6 +181,12 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
               showToast('Payment verification failed.', 'error');
             }
           },
+          modal: {
+            ondismiss: function () {
+              setLoading(false);
+              showToast('Razorpay payment cancelled.', 'info');
+            },
+          },
           prefill: {
             name: user?.name || '',
             email: user?.email || '',
@@ -190,9 +196,8 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
         };
         const rzp = new window.Razorpay(options);
         rzp.open();
-        setLoading(false);
       } else {
-        // Dev Mode Real-time verification fallback
+        // Explicit Dev Test Mode Verification
         await API.post('/payments/verify', {
           razorpay_order_id: orderData.orderId,
           razorpay_payment_id: `pay_rzp_live_${Date.now()}`,
@@ -201,7 +206,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
           isDevMode: true,
         });
 
-        showToast(`🎉 Real-Time Gateway Payment Verified! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
+        showToast(`🎉 Payment Verified! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
         setLoading(false);
         onClose();
         if (onSuccess) onSuccess(createdBooking);
