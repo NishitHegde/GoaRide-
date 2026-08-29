@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PhoneCall } from 'lucide-react';
+import { PhoneCall, Instagram, MessageCircle, Mail, Phone, Facebook, Youtube } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -39,6 +39,60 @@ export default function Footer() {
           <Link to="/tracking" className="hover:text-sky-600 dark:hover:text-cyan-400 transition-colors">Live Map</Link>
           <Link to="/ai-assistant" className="hover:text-sky-600 dark:hover:text-cyan-400 transition-colors">AI Trip Bot</Link>
           <Link to="/bookings" className="hover:text-sky-600 dark:hover:text-cyan-400 transition-colors">Bookings</Link>
+        </div>
+
+        {/* Social Media & Contact Redirect Icons */}
+        <div className="flex items-center gap-2">
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Follow us on Instagram"
+            className="p-2 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 text-pink-600 dark:text-pink-400 border border-pink-500/20 transition-all hover:scale-110"
+          >
+            <Instagram className="w-4 h-4" />
+          </a>
+          <a
+            href="https://wa.me/917588459115?text=Hi%20GoaRide!%20I%20want%20to%20inquire%20about%20vehicle%20rentals."
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Chat on WhatsApp"
+            className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition-all hover:scale-110"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </a>
+          <a
+            href="tel:+917588459115"
+            title="Call Support"
+            className="p-2 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 transition-all hover:scale-110"
+          >
+            <Phone className="w-4 h-4" />
+          </a>
+          <a
+            href="mailto:support@goaride.in"
+            title="Email Support"
+            className="p-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 transition-all hover:scale-110"
+          >
+            <Mail className="w-4 h-4" />
+          </a>
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Facebook Page"
+            className="p-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-all hover:scale-110"
+          >
+            <Facebook className="w-4 h-4" />
+          </a>
+          <a
+            href="https://youtube.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="YouTube Channel"
+            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-all hover:scale-110"
+          >
+            <Youtube className="w-4 h-4" />
+          </a>
         </div>
 
         {/* 24/7 Helpline Badge & Copyright */}

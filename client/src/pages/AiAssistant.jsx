@@ -499,127 +499,226 @@ export default function AiAssistant() {
             ))}
           </div>
 
-          {/* Luxury Glass Chat Console Container */}
-          <div className="glass-panel rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col h-[520px] shadow-2xl relative">
-            
-            {/* Console Header Bar */}
-            <div className="p-4 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-[#070e1b]/70 backdrop-blur-md flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="font-extrabold text-xs text-slate-900 dark:text-white block">GoaRide AI Neural Concierge</span>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Telemetry Stream Active
-                  </span>
-                </div>
-              </div>
+          {/* 2-Column Grid Layout: Resized Chat Console (Left) + New Feature Side Panel (Right) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
-                <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px]">Real-Time Fleet API</span>
-              </div>
-            </div>
-
-            {/* Messages Scroll Area */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-grow bg-slate-50/40 dark:bg-[#050a14]/50 backdrop-blur-sm">
-              {messages.map((m, idx) => (
-                <div key={idx} className={`flex items-start gap-3.5 ${m.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                  
-                  {/* Avatar Icon */}
-                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg ${
-                    m.sender === 'user'
-                      ? 'bg-gradient-to-tr from-sky-600 to-blue-700 text-white'
-                      : 'bg-gradient-to-tr from-teal-600 to-emerald-600 text-white'
-                  }`}>
-                    {m.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+            {/* Left Column: Compact Resized Glass Chat Console Container */}
+            <div className="lg:col-span-2 glass-panel rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col h-[520px] shadow-2xl relative">
+              
+              {/* Console Header Bar */}
+              <div className="p-4 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-[#070e1b]/70 backdrop-blur-md flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md">
+                    <Bot className="w-5 h-5" />
                   </div>
+                  <div>
+                    <span className="font-extrabold text-xs text-slate-900 dark:text-white block">GoaRide AI Neural Concierge</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Telemetry Stream Active
+                    </span>
+                  </div>
+                </div>
 
-                  {/* Message Bubble Container */}
-                  <div className={`relative max-w-lg p-4 rounded-3xl text-xs leading-relaxed space-y-3 group shadow-md ${
-                    m.sender === 'user'
-                      ? 'bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 text-white font-medium rounded-tr-none'
-                      : 'bg-white dark:bg-[#0d1726] text-slate-900 dark:text-slate-100 border border-slate-200/90 dark:border-slate-800 rounded-tl-none font-medium'
-                  }`}>
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px]">Real-Time Fleet API</span>
+                </div>
+              </div>
+
+              {/* Messages Scroll Area */}
+              <div className="p-6 overflow-y-auto space-y-6 flex-grow bg-slate-50/40 dark:bg-[#050a14]/50 backdrop-blur-sm">
+                {messages.map((m, idx) => (
+                  <div key={idx} className={`flex items-start gap-3.5 ${m.sender === 'user' ? 'flex-row-reverse' : ''}`}>
                     
-                    {/* Timestamp & Copy header */}
-                    <div className="flex items-center justify-between text-[10px] opacity-75 font-semibold pb-1 border-b border-black/5 dark:border-white/5">
-                      <span>{m.sender === 'user' ? 'You' : 'GoaRide AI'}</span>
-                      <span>{m.timestamp}</span>
+                    {/* Avatar Icon */}
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold flex-shrink-0 shadow-lg ${
+                      m.sender === 'user'
+                        ? 'bg-gradient-to-tr from-sky-600 to-blue-700 text-white'
+                        : 'bg-gradient-to-tr from-teal-600 to-emerald-600 text-white'
+                    }`}>
+                      {m.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                     </div>
 
-                    {/* Content Text */}
-                    <div className="whitespace-pre-line leading-relaxed text-slate-800 dark:text-slate-200">{m.text}</div>
-
-                    {/* Embedded Vehicle Recommendation Cards */}
-                    {m.recommendedVehicles && m.recommendedVehicles.length > 0 && (
-                      <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 dark:text-cyan-400 block">
-                          🏎️ Recommended Fleet Options:
-                        </span>
-                        <div className="grid grid-cols-1 gap-2">
-                          {m.recommendedVehicles.map((v) => (
-                            <div key={v._id} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm hover:border-sky-500 transition-colors">
-                              <div className="flex items-center gap-3">
-                                <img src={v.image} alt={v.name} className="w-12 h-12 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" />
-                                <div>
-                                  <span className="font-extrabold text-slate-900 dark:text-white text-xs block">{v.name}</span>
-                                  <span className="text-[11px] text-sky-600 dark:text-cyan-400 font-bold">₹{v.pricePerDay} / day • {v.location}</span>
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => setSelectedVehicle(v)}
-                                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 dark:from-cyan-500 dark:to-blue-600 text-white font-bold text-[11px] shadow-md flex items-center gap-1 hover:scale-105 transition-transform"
-                              >
-                                <span>Book</span>
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                    {/* Message Bubble Container */}
+                    <div className={`relative max-w-md sm:max-w-lg p-4 rounded-3xl text-xs leading-relaxed space-y-3 group shadow-md ${
+                      m.sender === 'user'
+                        ? 'bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 text-white font-medium rounded-tr-none'
+                        : 'bg-white dark:bg-[#0d1726] text-slate-900 dark:text-slate-100 border border-slate-200/90 dark:border-slate-800 rounded-tl-none font-medium'
+                    }`}>
+                      
+                      {/* Timestamp & Copy header */}
+                      <div className="flex items-center justify-between text-[10px] opacity-75 font-semibold pb-1 border-b border-black/5 dark:border-white/5">
+                        <span>{m.sender === 'user' ? 'You' : 'GoaRide AI'}</span>
+                        <span>{m.timestamp}</span>
                       </div>
-                    )}
 
-                    {m.sender === 'bot' && (
-                      <button
-                        onClick={() => copyToClipboard(m.text, idx)}
-                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 opacity-0 group-hover:opacity-100 hover:text-slate-700 dark:hover:text-slate-200 transition-opacity"
-                        title="Copy text"
-                      >
-                        {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
-                    )}
+                      {/* Content Text */}
+                      <div className="whitespace-pre-line leading-relaxed text-slate-800 dark:text-slate-200">{m.text}</div>
+
+                      {/* Embedded Vehicle Recommendation Cards */}
+                      {m.recommendedVehicles && m.recommendedVehicles.length > 0 && (
+                        <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-sky-600 dark:text-cyan-400 block">
+                            🏎️ Recommended Fleet Options:
+                          </span>
+                          <div className="grid grid-cols-1 gap-2">
+                            {m.recommendedVehicles.map((v) => (
+                              <div key={v._id} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3 shadow-sm hover:border-sky-500 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <img src={v.image} alt={v.name} className="w-12 h-12 object-cover rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" />
+                                  <div>
+                                    <span className="font-extrabold text-slate-900 dark:text-white text-xs block">{v.name}</span>
+                                    <span className="text-[11px] text-sky-600 dark:text-cyan-400 font-bold">₹{v.pricePerDay} / day • {v.location}</span>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => setSelectedVehicle(v)}
+                                  className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 dark:from-cyan-500 dark:to-blue-600 text-white font-bold text-[11px] shadow-md flex items-center gap-1 hover:scale-105 transition-transform"
+                                >
+                                  <span>Book</span>
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {m.sender === 'bot' && (
+                        <button
+                          onClick={() => copyToClipboard(m.text, idx)}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 opacity-0 group-hover:opacity-100 hover:text-slate-700 dark:hover:text-slate-200 transition-opacity"
+                          title="Copy text"
+                        >
+                          {copiedIdx === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-              
-              {loading && (
-                <div className="flex items-center gap-3 text-xs text-teal-600 dark:text-teal-400 font-bold p-3 bg-white dark:bg-[#0d1726] rounded-2xl border border-slate-200 dark:border-slate-800 w-fit shadow-sm">
-                  <Bot className="w-4 h-4 animate-spin text-teal-500" />
-                  <span>AI Neural Engine is processing your query...</span>
-                </div>
-              )}
-              <div ref={chatEndRef} />
+                ))}
+                
+                {loading && (
+                  <div className="flex items-center gap-3 text-xs text-teal-600 dark:text-teal-400 font-bold p-3 bg-white dark:bg-[#0d1726] rounded-2xl border border-slate-200 dark:border-slate-800 w-fit shadow-sm">
+                    <Bot className="w-4 h-4 animate-spin text-teal-500" />
+                    <span>AI Neural Engine is processing your query...</span>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Mobile-Friendly Input Bar */}
+              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-2.5 sm:p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#070e1b]/90 backdrop-blur-md flex items-center gap-2 sm:gap-3">
+                <input
+                  type="text"
+                  placeholder="Ask AI about Goa rentals, routes, beaches..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  className="flex-grow min-w-0 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-600 dark:focus:border-teal-500 font-medium shadow-inner transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  className="px-3.5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-lg shadow-teal-600/25 disabled:opacity-50 flex-shrink-0"
+                >
+                  <span className="hidden sm:inline">Send</span>
+                  <Send className="w-4 h-4 text-white" />
+                </button>
+              </form>
+
             </div>
 
-            {/* Mobile-Friendly Input Bar */}
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="p-2.5 sm:p-4 border-t border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#070e1b]/90 backdrop-blur-md flex items-center gap-2 sm:gap-3">
-              <input
-                type="text"
-                placeholder="Ask AI about Goa rentals, routes, beaches..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="flex-grow min-w-0 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-teal-600 dark:focus:border-teal-500 font-medium shadow-inner transition-all"
-              />
-              <button
-                type="submit"
-                disabled={loading || !input.trim()}
-                className="px-3.5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-500 text-white font-extrabold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-1.5 sm:gap-2 transition-all shadow-lg shadow-teal-600/25 disabled:opacity-50 flex-shrink-0"
+            {/* Right Column: NEW SIDE FEATURE PANEL */}
+            <div className="glass-panel p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-5 flex flex-col justify-between shadow-2xl h-[520px] overflow-y-auto">
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Compass className="w-5 h-5 text-teal-600 dark:text-cyan-400 animate-spin-slow" />
+                    <span className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-wider">Live Goa AI Radar</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-300 dark:border-teal-800">
+                    Real-Time
+                  </span>
+                </div>
+
+                {/* 1. Quick Route Radar Shortcuts */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Popular Trip Destinations</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <button
+                      onClick={() => handleSend('i have to go betul')}
+                      className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-teal-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-left font-bold text-slate-800 dark:text-slate-200 hover:border-teal-500 transition-all shadow-xs"
+                    >
+                      <span className="block text-[11px]">📍 Betul Beach</span>
+                      <span className="text-[9px] text-teal-600 dark:text-cyan-400 font-normal">Sal River Estuary</span>
+                    </button>
+                    <button
+                      onClick={() => handleSend('route to Dudhsagar Waterfalls')}
+                      className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-teal-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-left font-bold text-slate-800 dark:text-slate-200 hover:border-teal-500 transition-all shadow-xs"
+                    >
+                      <span className="block text-[11px]">🌊 Dudhsagar</span>
+                      <span className="text-[9px] text-teal-600 dark:text-cyan-400 font-normal">Jeep Waterfall Safari</span>
+                    </button>
+                    <button
+                      onClick={() => handleSend('guide for Palolem Beach')}
+                      className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-teal-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-left font-bold text-slate-800 dark:text-slate-200 hover:border-teal-500 transition-all shadow-xs"
+                    >
+                      <span className="block text-[11px]">🌴 Palolem</span>
+                      <span className="text-[9px] text-teal-600 dark:text-cyan-400 font-normal">Crescent Bay & Huts</span>
+                    </button>
+                    <button
+                      onClick={() => handleSend('Mopa Airport transport guide')}
+                      className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-teal-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-left font-bold text-slate-800 dark:text-slate-200 hover:border-teal-500 transition-all shadow-xs"
+                    >
+                      <span className="block text-[11px]">🛫 Mopa Airport</span>
+                      <span className="text-[9px] text-teal-600 dark:text-cyan-400 font-normal">North Airport Express</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Top Recommended Fleet Vehicle Matches */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Top Fleet Match Suggestions</span>
+                  <div className="space-y-2">
+                    {fleetVehicles.slice(0, 2).map((v) => (
+                      <div key={v._id} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <img src={v.image} alt={v.name} className="w-10 h-10 object-cover rounded-lg border border-slate-200 dark:border-slate-700" />
+                          <div>
+                            <span className="font-extrabold text-xs text-slate-900 dark:text-white block">{v.name}</span>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">₹{v.pricePerDay}/day • {v.location}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setSelectedVehicle(v)}
+                          className="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-black text-[10px] shadow-sm"
+                        >
+                          Book
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Live Goa Travel Telemetry Card */}
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-sky-500/10 border border-teal-500/20 text-xs space-y-1">
+                  <span className="font-black text-teal-800 dark:text-cyan-300 block text-[11px]">☀️ Live Travel Telemetry</span>
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                    <span>Current Season: Peak Sun (28°C)</span>
+                    <span className="text-emerald-600">Petrol: ₹98/L</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. SOS Hotline Call CTA */}
+              <a
+                href="tel:+917588459115"
+                className="w-full py-2.5 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-black text-xs flex items-center justify-center gap-2 hover:bg-emerald-200 transition-colors shadow-sm"
               >
-                <span className="hidden sm:inline">Send</span>
-                <Send className="w-4 h-4 text-white" />
-              </button>
-            </form>
+                <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>24/7 Helpline: +91 75884 59115</span>
+              </a>
+
+            </div>
 
           </div>
         </div>
