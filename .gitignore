@@ -7,3 +7,4 @@ node_modules/
 server/.mongo_dev_data/
 server/uploads/
 dist/
+client/dist/
