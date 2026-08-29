@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import API from '../services/api';
 import BookingModal from '../components/BookingModal';
-import { Bot, Send, Sparkles, MapPin, Compass, Calendar, User, Copy, Check, ArrowRight, Fuel, Calculator, ShieldCheck, Zap, PhoneCall, Cpu, Flame, Layers } from 'lucide-react';
+import { Bot, Send, Sparkles, MapPin, Compass, Calendar, User, Copy, Check, ArrowRight, Fuel, Calculator, ShieldCheck, Zap, PhoneCall, Phone, Cpu, Flame, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AiAssistant() {
