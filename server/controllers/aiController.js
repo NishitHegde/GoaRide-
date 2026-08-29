@@ -238,8 +238,8 @@ export const handleAiChat = async (req, res) => {
         `• **Airport (Dabolim) ➔ Baga Beach (40 km)**:\n` +
         `  - Scooter: ~0.9 Liters (₹95)\n` +
         `  - Car / SUV: ~3.5 Liters (₹365)\n\n` +
-        `💡 *Petrol in Goa is currently priced at ~₹98/liter.*`;
-      fuelEstimate = { ratePerLiter: 98, avgScooterKmPerL: 45, avgCarKmPerL: 14 };
+        `💡 *Petrol in Goa is currently priced at ~₹104/liter (Diesel: ~₹98/liter).*`;
+      fuelEstimate = { ratePerLiter: 104, avgScooterKmPerL: 45, avgCarKmPerL: 14 };
     }
 
     // 2. SPECIFIC ACTION: EMERGENCY / BREAKDOWN

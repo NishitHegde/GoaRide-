@@ -227,8 +227,8 @@ export default function AiAssistant() {
 
     let mileage = 45; // Default scooter mileage
     let unit = 'Liters';
-    let unitPrice = 103; // Petrol ₹103/L in Goa
-    let fuelLabel = 'Petrol Price: ₹103/L';
+    let unitPrice = 104; // Petrol ₹104/L in Goa
+    let fuelLabel = 'Petrol Price: ₹104/L';
 
     if (targetVehicle) {
       const vName = targetVehicle.name.toLowerCase();
@@ -243,12 +243,12 @@ export default function AiAssistant() {
       } else if (vFuel === 'diesel' || vName.includes('diesel') || vName.includes('innova') || vName.includes('fortuner')) {
         mileage = 11;
         unit = 'Liters';
-        unitPrice = 96; // Diesel ₹96/L in Goa
-        fuelLabel = 'Diesel Price: ₹96/L';
+        unitPrice = 98; // Diesel ₹98/L in Goa
+        fuelLabel = 'Diesel Price: ₹98/L';
       } else {
         unit = 'Liters';
-        unitPrice = 103; // Petrol ₹103/L in Goa
-        fuelLabel = 'Petrol Price: ₹103/L';
+        unitPrice = 104; // Petrol ₹104/L in Goa
+        fuelLabel = 'Petrol Price: ₹104/L';
 
         if (vType === 'bike') {
           if (vName.includes('classic') || vName.includes('enfield') || vName.includes('himalayan')) {
@@ -334,7 +334,7 @@ export default function AiAssistant() {
       return `⛽ **Fuel & Travel Mileage Guidance for your question:**\n\n` +
         `• **Scooter Mileage**: ~45 km/liter (Honda Activa 6G / Jupiter).\n` +
         `• **Car Mileage**: ~14-16 km/liter (Swift / Baleno) and ~9-11 km/liter (Thar 4x4 / Innova).\n` +
-        `• **Current Petrol Price in Goa**: ~₹98 - ₹103/liter.\n\n` +
+        `• **Current Fuel Prices in Goa**: Petrol ~₹104/liter • Diesel ~₹98/liter.\n\n` +
         `💡 *Tip: Check out our interactive Fuel Matrix tab above to select any vehicle and calculate exact route fuel expenses!*`;
     }
 
@@ -704,7 +704,7 @@ export default function AiAssistant() {
                   <span className="font-black text-teal-800 dark:text-cyan-300 block text-[11px]">☀️ Live Travel Telemetry</span>
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
                     <span>Current Season: Peak Sun (28°C)</span>
-                    <span className="text-emerald-600">Petrol: ₹98/L</span>
+                    <span className="text-emerald-600 dark:text-emerald-400">Petrol: ₹104/L • Diesel: ₹98/L</span>
                   </div>
                 </div>
               </div>
