@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import VehicleCard from '../components/VehicleCard';
 import BookingModal from '../components/BookingModal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { Search, MapPin, Bike, Car, Shield, Sparkles, ChevronDown, Star, Compass } from 'lucide-react';
+import { Search, MapPin, Bike, Car, Shield, Sparkles, ChevronDown, Star, Compass, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -81,24 +81,65 @@ export default function Home() {
     navigate(`/vehicles${queryString}`);
   };
 
-  const faqs = [
+  const explorePlaces = [
     {
-      q: 'What documents are required to rent a bike or car in Goa?',
-      a: 'You generally need an original valid Driving License (DL) and a government photo ID proof (Aadhaar or Passport).',
+      name: 'Calangute & Baga',
+      locationQuery: 'Calangute',
+      subtitle: 'Water sports & lively beach shacks',
+      image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop',
     },
     {
-      q: 'Can I cancel or modify my booking?',
-      a: 'Yes! You can easily cancel your booking from your My Bookings dashboard.',
+      name: 'Panaji Latin Quarter',
+      locationQuery: 'Panaji',
+      subtitle: 'Colorful Portuguese Fontainhas heritage',
+      image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1000&auto=format&fit=crop',
     },
     {
-      q: 'How does live vehicle tracking work?',
-      a: 'Once your booking is confirmed, select your booked vehicle on the Live Tracking page to view GPS locations on our interactive Goa map.',
+      name: 'Chapora Fort & Vagator',
+      locationQuery: 'Vagator',
+      subtitle: 'Iconic sunset cliffside views',
+      image: 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?q=80&w=1000&auto=format&fit=crop',
     },
     {
-      q: 'Are helmets and roadside assistance included?',
-      a: 'Yes, 2 complimentary helmets are provided with all bike rentals, along with 24/7 roadside emergency support across Goa.',
+      name: 'Palolem & South Goa',
+      locationQuery: 'Palolem',
+      subtitle: 'Tranquil crescent bays & kayaking',
+      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+      name: 'Dudhsagar Waterfalls',
+      locationQuery: 'Dudhsagar',
+      subtitle: '4-tiered jungle waterfall safari',
+      image: 'https://images.unsplash.com/photo-1589139049929-1976077ff3e3?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+      name: 'Old Goa Cathedrals',
+      locationQuery: 'Old Goa',
+      subtitle: '16th century UNESCO cathedrals',
+      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+      name: 'Betul Beach & Estuary',
+      locationQuery: 'Betul',
+      subtitle: 'Sal river mouth & lighthouse sunset',
+      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1000&auto=format&fit=crop',
+    },
+    {
+      name: 'Anjuna Boho Coast',
+      locationQuery: 'Anjuna',
+      subtitle: 'Bohemian markets & beach lounges',
+      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000&auto=format&fit=crop',
     },
   ];
+
+  const exploreRef = useRef(null);
+
+  const scrollExplore = (direction) => {
+    if (exploreRef.current) {
+      const scrollAmount = direction === 'left' ? -320 : 320;
+      exploreRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="space-y-10 sm:space-y-12 pb-12">
@@ -258,6 +299,81 @@ export default function Home() {
             </button>
           </div>
 
+        </div>
+      </section>
+
+      {/* PLACES TO EXPLORE IN GOA (DISCOVER FEATURE) */}
+      <section className="w-full px-4 sm:px-8 lg:px-12 py-4">
+        <div className="text-center space-y-2 mb-8">
+          <span className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+            DISCOVER
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Places to Explore in Goa
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-medium">
+            Choose a place and find the best self-drive vehicles near you
+          </p>
+        </div>
+
+        {/* Horizontal Scrollable Carousel Container */}
+        <div className="relative group">
+          <div
+            ref={exploreRef}
+            className="flex items-center gap-5 overflow-x-auto scrollbar-none scroll-smooth pb-4 px-1"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {explorePlaces.map((place, idx) => (
+              <div
+                key={idx}
+                onClick={() => navigate(`/vehicles?location=${encodeURIComponent(place.locationQuery)}`)}
+                className="flex-shrink-0 w-[240px] sm:w-[280px] h-[340px] sm:h-[380px] rounded-3xl overflow-hidden relative group/card cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 border border-slate-200/40 dark:border-slate-800/80"
+              >
+                {/* Real Photo Image */}
+                <img
+                  src={place.image}
+                  alt={place.name}
+                  className="w-full h-full object-cover object-center group-hover/card:scale-110 transition-transform duration-700"
+                />
+
+                {/* Dark Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent transition-opacity" />
+
+                {/* Place Label Overlay at Bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 space-y-1 z-10 text-left">
+                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md">
+                    {place.name}
+                  </h3>
+                  <p className="text-xs text-slate-200/90 font-medium line-clamp-1">
+                    {place.subtitle}
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 pt-1">
+                    <span>Explore Fleet</span>
+                    <span>→</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Left & Right Arrow Controls */}
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+              onClick={() => scrollExplore('left')}
+              className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-md hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105 transition-all"
+              title="Previous"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => scrollExplore('right')}
+              className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-md hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105 transition-all"
+              title="Next"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </section>
 
