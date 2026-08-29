@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { MapPin, Navigation, Radio, AlertTriangle, PhoneCall, Route, Car, Search, ShieldCheck, Lock, CheckCircle2, Fuel } from 'lucide-react';
+import { MapPin, Navigation, Radio, AlertTriangle, PhoneCall, Route, Car, Search, ShieldCheck, Lock, CheckCircle2, Fuel, Compass } from 'lucide-react';
 
 const bikeIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
@@ -54,15 +54,32 @@ export default function Tracking() {
   const urlVehicleName = searchParams.get('name') || '';
 
   const goaHotspots = [
-    { name: 'Calangute Beach', lat: 15.5438, lng: 73.7554 },
-    { name: 'Baga Beach', lat: 15.5553, lng: 73.7517 },
-    { name: 'Panaji Latin Quarter', lat: 15.4989, lng: 73.8278 },
-    { name: 'Anjuna Beach', lat: 15.5847, lng: 73.7439 },
-    { name: 'Vagator Fort', lat: 15.6028, lng: 73.7381 },
-    { name: 'Dabolim Airport', lat: 15.3808, lng: 73.8314 },
-    { name: 'Dudhsagar Waterfalls', lat: 15.3144, lng: 74.3143 },
-    { name: 'Colva Beach', lat: 15.2784, lng: 73.9145 },
+    { name: 'Calangute Beach', lat: 15.5438, lng: 73.7554, category: 'Beach & Watersports', desc: 'Goa\'s most famous beach for parasailing, jet skis & lively shacks.', bestVehicle: 'Honda Activa 6G (Scooter)', bestTime: '4:00 PM - 7:00 PM' },
+    { name: 'Baga Beach', lat: 15.5553, lng: 73.7517, category: 'Nightlife & Shacks', desc: 'Vibrant nightlife hub with Tito\'s Lane, Britto\'s & water sports.', bestVehicle: 'Honda Activa 6G (Scooter)', bestTime: '7:00 PM - 1:00 AM' },
+    { name: 'Panaji Latin Quarter (Fontainhas)', lat: 15.4989, lng: 73.8278, category: 'UNESCO Heritage', desc: 'Colorful 19th-century Portuguese houses, narrow alleys & art cafes.', bestVehicle: 'Honda Activa 6G / Classic 350', bestTime: '8:00 AM - 11:00 AM' },
+    { name: 'Anjuna Beach & Flea Market', lat: 15.5847, lng: 73.7439, category: 'Boho Beach & Market', desc: 'Famous bohemian beach, sunset lounges & Wednesday flea market.', bestVehicle: 'Royal Enfield Classic 350', bestTime: '5:00 PM - 8:00 PM' },
+    { name: 'Vagator & Chapora Fort', lat: 15.6028, lng: 73.7381, category: 'Scenic Fort & Viewpoint', desc: 'Iconic \'Dil Chahta Hai\' cliffside fort overlooking Vagator beach.', bestVehicle: 'Honda Activa / RE Classic 350', bestTime: '5:00 PM - 6:30 PM' },
+    { name: 'Betul Beach & Lighthouse', lat: 15.1438, lng: 73.9542, category: 'Coastal Estuary & Port', desc: 'Peaceful fishing village where Sal river meets the ocean with lighthouse views.', bestVehicle: 'RE Classic 350 / Thar 4x4', bestTime: '5:00 PM - 7:00 PM' },
+    { name: 'Palolem Beach', lat: 15.0100, lng: 74.0230, category: 'Crescent Bay Paradise', desc: 'Crescent bay with calm turquoise waters, colorful huts & kayaking.', bestVehicle: 'RE Classic 350 / Swift', bestTime: 'All Day' },
+    { name: 'Dudhsagar Waterfalls', lat: 15.3144, lng: 74.3143, category: 'Milky Waterfall Safari', desc: '4-tiered 310m roaring waterfall inside Bhagwan Mahavir Sanctuary.', bestVehicle: 'Mahindra Thar 4x4 / Creta', bestTime: '9:00 AM - 3:00 PM' },
+    { name: 'Colva & Benaulim Beach', lat: 15.2784, lng: 73.9145, category: 'South Goa White Sand', desc: 'Extensive white sand coastline with serene waters & seafood shacks.', bestVehicle: 'Swift / Honda Activa 6G', bestTime: '4:00 PM - 7:00 PM' },
+    { name: 'Dabolim Airport (GOI)', lat: 15.3808, lng: 73.8314, category: 'Central Transit Hub', desc: 'Primary international airport with GoaRide pickup counter.', bestVehicle: 'Hyundai Creta / Swift / Innova', bestTime: '24/7' },
   ];
+
+  // Helper function to calculate distance in road km between 2 lat/lng points
+  const calculateKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Earth radius in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.max(1, Math.round(R * c * 1.3));
+  };
 
   const [fleetVehicles, setFleetVehicles] = useState([]);
   const [myBookedVehicleIds, setMyBookedVehicleIds] = useState([]);
@@ -588,6 +605,99 @@ export default function Tracking() {
 
         </div>
 
+      </div>
+
+      {/* NEARBY TOURIST ATTRACTIONS RADAR & AI SUGGESTIONS SECTION */}
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-6 shadow-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+              <Compass className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                Nearby Tourist Attractions Radar
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                Live distances & travel insights calculated from <span className="font-bold text-sky-600 dark:text-cyan-400">{pickupPoint.name}</span>
+              </p>
+            </div>
+          </div>
+
+          <span className="px-3.5 py-1.5 rounded-full bg-sky-100 dark:bg-cyan-950 text-sky-800 dark:text-cyan-300 text-xs font-black border border-sky-300 dark:border-cyan-700 w-fit">
+            📍 {goaHotspots.length} Tourist Destinations Nearby
+          </span>
+        </div>
+
+        {/* Tourist Places Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {goaHotspots.map((spot, idx) => {
+            const distKm = calculateKm(pickupPoint.lat, pickupPoint.lng, spot.lat, spot.lng);
+            const driveMins = Math.round((distKm / 35) * 60);
+
+            return (
+              <div key={idx} className="p-5 rounded-2xl glass-card border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between space-y-4 hover:border-amber-500/40 transition-all shadow-sm group">
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                        {spot.category || 'Sightseeing'}
+                      </span>
+                      <h3 className="font-extrabold text-base text-slate-900 dark:text-white mt-1.5 group-hover:text-sky-600 dark:group-hover:text-cyan-400 transition-colors">
+                        {spot.name}
+                      </h3>
+                    </div>
+                    
+                    <span className="text-xs font-black text-sky-600 dark:text-cyan-400 flex-shrink-0 bg-sky-50 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-slate-700 shadow-xs">
+                      {distKm} km
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                    {spot.desc}
+                  </p>
+
+                  <div className="pt-1.5 space-y-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 border-t border-slate-200/50 dark:border-slate-800/50 mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <span>⏱️ Est. Drive Time:</span>
+                      <span className="text-slate-800 dark:text-slate-200 font-extrabold">{driveMins} Mins drive</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span>🛵 Best Fleet Vehicle:</span>
+                      <span className="text-amber-600 dark:text-amber-400 font-extrabold">{spot.bestVehicle}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span>☀️ Best Time:</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{spot.bestTime}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                  <button
+                    onClick={() => {
+                      setDropIdx(idx);
+                      handleCalculateRoute(pickupIdx, idx);
+                      window.scrollTo({ top: 350, behavior: 'smooth' });
+                    }}
+                    className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 text-white font-black text-xs shadow-md flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <Navigation className="w-3.5 h-3.5" />
+                    <span>Plot Route on Map</span>
+                  </button>
+
+                  <Link
+                    to="/vehicles"
+                    className="py-2 px-3 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold text-xs flex items-center justify-center gap-1 transition-all"
+                  >
+                    <Car className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Book Ride</span>
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
     </div>
