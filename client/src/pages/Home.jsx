@@ -132,6 +132,25 @@ export default function Home() {
     },
   ];
 
+  const faqs = [
+    {
+      q: 'What documents are required to rent a bike or car in Goa?',
+      a: 'You generally need an original valid Driving License (DL) and a government photo ID proof (Aadhaar or Passport).',
+    },
+    {
+      q: 'Can I cancel or modify my booking?',
+      a: 'Yes! You can easily cancel your booking from your My Bookings dashboard.',
+    },
+    {
+      q: 'How does live vehicle tracking work?',
+      a: 'Once your booking is confirmed, select your booked vehicle on the Live Tracking page to view GPS locations on our interactive Goa map.',
+    },
+    {
+      q: 'Are helmets and roadside assistance included?',
+      a: 'Yes, 2 complimentary helmets are provided with all bike rentals, along with 24/7 roadside emergency support across Goa.',
+    },
+  ];
+
   const exploreRef = useRef(null);
 
   const scrollExplore = (direction) => {
