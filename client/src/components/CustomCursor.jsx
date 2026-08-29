@@ -22,8 +22,10 @@ export default function CustomCursor() {
 
       // Check hover over interactive clickable elements
       const target = e.target;
-      const isInteractive = !!target.closest(
-        'button, a, input, select, textarea, [role="button"], .glass-card, .glass-panel'
+      const isInteractive = !!(
+        target &&
+        typeof target.closest === 'function' &&
+        target.closest('button, a, input, select, textarea, [role="button"], .glass-card, .glass-panel')
       );
       setIsHovered(isInteractive);
     };
