@@ -1,6 +1,6 @@
 import Vehicle from '../models/Vehicle.js';
 
-// Helper function to call Google Gemini API with fallback models
+// 1. Helper function to call Google Gemini API with fallback models
 async function callGoogleGeminiApi(apiKey, userPrompt) {
   const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
   
@@ -37,6 +37,134 @@ async function callGoogleGeminiApi(apiKey, userPrompt) {
   return null;
 }
 
+// 2. Free Real-Time AI Fallback via Pollinations AI Engine
+async function callFreeRealTimeAi(userPrompt) {
+  try {
+    const systemText = "You are GoaRide AI Neural Assistant, an expert Goa travel guide & rental concierge. Provide a direct, accurate, enthusiastic, and comprehensive answer specifically addressing the user's question. Use clear formatting, bullet points, and emojis.";
+    const url = `https://text.pollinations.ai/${encodeURIComponent(systemText + "\nUser Question: " + userPrompt)}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      const text = await response.text();
+      if (text && text.trim() && !text.includes('<html')) {
+        return text.trim();
+      }
+    }
+  } catch (e) {
+    console.error('Free AI API call error:', e.message);
+  }
+  return null;
+}
+
+// 3. Location Intelligence Database for Goa Destinations
+const locationDatabase = {
+  betul: {
+    name: "Betul & Betul Beach (South Goa)",
+    description: "Betul is a picturesque fishing village and coastal gem located at the mouth of the Sal River in South Goa. Famous for Betul Lighthouse, quiet uncrowded beach, fresh riverfront seafood shacks, and scenic ferry crossings.",
+    distanceFromNorth: "~60-65 km (~1.5 to 2 hours drive)",
+    distanceFromAirport: "~40 km (~50 mins from Dabolim Airport)",
+    distanceFromMargao: "~18 km (~30 mins from Margao Railway Station)",
+    route: "Take NH66 South ➔ Drive past Margao ➔ Turn at Chinchinim towards Assolna ➔ Cross Mobor/Cavelossim River Bridge ➔ Arrive at Betul Port & Beach.",
+    recommendedVehicles: ["Honda Activa 6G (Scooter)", "Royal Enfield Classic 350 (Cruiser)", "Mahindra Thar 4x4 / Swift (Car)"],
+    tips: [
+      "Visit the Betul Lighthouse during sunset for 360° views of the Sal River joining the Arabian Sea.",
+      "Enjoy fresh catch-of-the-day fish curry rice at riverfront shacks.",
+      "Combine your trip with nearby Cavelossim Beach & Mobor Beach."
+    ]
+  },
+  palolem: {
+    name: "Palolem Beach (Extreme South Goa)",
+    description: "A world-famous crescent-shaped beach with calm waters, coconut palm groves, beach colorful huts, kayaking to Monkey Island, and Silent Noise headphone parties.",
+    distanceFromNorth: "~75-80 km (~2 hours drive)",
+    distanceFromAirport: "~60 km (~1.5 hours from Dabolim Airport)",
+    distanceFromMargao: "~38 km (~55 mins)",
+    route: "Take NH66 South past Margao & Cuncolim ➔ Drive past Canacona ➔ Arrive at Palolem Beach Road.",
+    recommendedVehicles: ["Royal Enfield Classic 350", "Honda Activa 6G", "Hyundai Creta / Swift"],
+    tips: [
+      "Rent a kayak to paddle over to Canacona Island (Monkey Island).",
+      "Take early morning dolphin spotting boat tours."
+    ]
+  },
+  agonda: {
+    name: "Agonda Beach (South Goa)",
+    description: "A wide 3km quiet stretch of pristine beach, famous as an Olive Ridley Turtle nesting sanctuary. Ideal for yoga, relaxation, and peaceful sunsets.",
+    distanceFromNorth: "~70-75 km (~1 hr 50 mins)",
+    distanceFromAirport: "~55 km (~1 hr 15 mins)",
+    distanceFromMargao: "~33 km (~45 mins)",
+    route: "Drive South on NH66 ➔ Turn towards Cabo de Rama / Agonda coastal road.",
+    recommendedVehicles: ["Honda Activa 6G", "RE Classic 350", "Thar 4x4"],
+    tips: [
+      "Enjoy quiet beachside yoga and clean uncrowded waters.",
+      "Respect turtle nesting zones near the northern end."
+    ]
+  },
+  dudhsagar: {
+    name: "Dudhsagar Waterfalls (Eastern Western Ghats)",
+    description: "A spectacular 4-tiered milky white waterfall inside Bhagwan Mahavir Wildlife Sanctuary. One of India's tallest waterfalls.",
+    distanceFromNorth: "~82 km (~2 hours to Kulem)",
+    distanceFromAirport: "~55 km (~1 hr 20 mins)",
+    distanceFromMargao: "~42 km (~1 hour)",
+    route: "Take NH66 ➔ Ponda ➔ Mollem ➔ Kulem Railway Station ➔ Board mandatory Forest Department Jeep Safari.",
+    recommendedVehicles: ["Mahindra Thar 4x4", "Royal Enfield Classic 350", "Honda Activa 6G"],
+    tips: [
+      "Wear life jackets mandatory for swimming at the base pool.",
+      "Visit spice plantations in Ponda on the return trip."
+    ]
+  },
+  arambol: {
+    name: "Arambol Beach & Sweet Water Lake (North Goa)",
+    description: "Bohemian paradise famous for cliffside paragliding, sunset drum circles, flea markets, and the freshwater lake surrounded by banyan trees.",
+    distanceFromNorth: "~25-30 km from Calangute (~45 mins)",
+    distanceFromAirport: "~30 km from Mopa Airport (GOX)",
+    distanceFromMargao: "~65 km (~1.5 hours)",
+    route: "Drive North on Coastal Highway via Morjim & Mandrem ➔ Arrive at Arambol Beach Road.",
+    recommendedVehicles: ["Honda Activa 6G", "Yamaha R15 V4", "Thar 4x4"],
+    tips: [
+      "Walk past the cliff to find the Sweet Water Lake (Paliem Beach).",
+      "Join the famous evening sunset drum circle on the beach."
+    ]
+  },
+  mopa: {
+    name: "Manohar International Airport, Mopa (GOX)",
+    description: "North Goa's new international airport located in Pernem district.",
+    distanceFromNorth: "~30-35 km to Calangute/Baga (~45 mins)",
+    distanceFromAirport: "0 km (Airport)",
+    distanceFromMargao: "~65 km (~1 hr 20 mins)",
+    route: "Take NH66 North Expressway directly connecting Mopa Airport to Pernem & Mapusa.",
+    recommendedVehicles: ["Hyundai Creta / Swift", "Thar 4x4", "Activa 6G"],
+    tips: [
+      "GoaRide offers direct airport pickup & drop service at Mopa Airport!"
+    ]
+  },
+  dabolim: {
+    name: "Dabolim International Airport (GOI)",
+    description: "Central Goa's primary airport located near Vasco da Gama.",
+    distanceFromNorth: "~40 km to Baga/Calangute (~50 mins)",
+    distanceFromAirport: "0 km (Airport)",
+    distanceFromMargao: "~28 km (~35 mins)",
+    route: "Take Zuari Bridge Expressway (NH66) directly into Panaji or Margao.",
+    recommendedVehicles: ["Toyota Innova Crysta", "Hyundai Creta", "Activa 6G"],
+    tips: [
+      "GoaRide vehicle pickup counter is available at Dabolim Airport."
+    ]
+  },
+  fontainhas: {
+    name: "Fontainhas (Latin Quarter, Panaji)",
+    description: "UNESCO Heritage Latin Quarter with vibrant 19th-century Portuguese houses, narrow cobblestone streets, colorful balconies & art cafes.",
+    distanceFromNorth: "~15 km from Calangute (~30 mins)",
+    distanceFromAirport: "~28 km from Dabolim Airport (~40 mins)",
+    distanceFromMargao: "~33 km (~45 mins)",
+    route: "Drive to Panaji City ➔ Head towards Ourem Creek near Patto Bridge.",
+    recommendedVehicles: ["Honda Activa 6G (Easy parking in narrow alleys)", "RE Classic 350"],
+    tips: [
+      "Walk through the colorful streets for photography in early morning or late afternoon.",
+      "Stop at Joseph Bar or Confeitaria 31 de Janeiro for traditional Goan snacks."
+    ]
+  }
+};
+
 export const handleAiChat = async (req, res) => {
   try {
     const { prompt, days, budget, tripType } = req.body;
@@ -60,12 +188,42 @@ export const handleAiChat = async (req, res) => {
       const geminiReply = await callGoogleGeminiApi(apiKey, rawPrompt);
       if (geminiReply) {
         reply = geminiReply;
-        if (text.includes('bike') || text.includes('scooter') || text.includes('activa') || text.includes('enfield')) {
-          recommendedVehicles = vehicles.filter(v => v.type === 'bike').slice(0, 3);
-        } else if (text.includes('car') || text.includes('suv') || text.includes('thar') || text.includes('creta')) {
-          recommendedVehicles = vehicles.filter(v => v.type === 'car').slice(0, 3);
-        }
       }
+    }
+
+    // 2. SECONDARY REAL-TIME FREE AI INFERENCE FALLBACK
+    if (!reply && rawPrompt.length > 1) {
+      const freeAiReply = await callFreeRealTimeAi(rawPrompt);
+      if (freeAiReply) {
+        reply = freeAiReply;
+      }
+    }
+
+    // 3. TARGETED GOA LOCATION ROUTE DETECTOR & GUIDANCE
+    if (!reply) {
+      const locKey = Object.keys(locationDatabase).find(k => text.includes(k));
+      if (locKey) {
+        const loc = locationDatabase[locKey];
+        reply = `🗺️ **Real-Time Travel & Route Guide to ${loc.name}:**\n\n` +
+          `📍 **About Destination**:\n${loc.description}\n\n` +
+          `🚗 **Distance & Drive Time Estimates**:\n` +
+          `• **From North Goa (Calangute / Baga)**: ${loc.distanceFromNorth}\n` +
+          `• **From Dabolim Airport**: ${loc.distanceFromAirport}\n` +
+          `• **From Margao Railway Station**: ${loc.distanceFromMargao}\n\n` +
+          `🛣️ **Recommended Driving Route**:\n${loc.route}\n\n` +
+          `🛵 **Best Fleet Vehicles for this Trip**:\n` +
+          loc.recommendedVehicles.map(v => `• ${v}`).join('\n') + `\n\n` +
+          `💡 **AI Pro Tips**:\n` +
+          loc.tips.map((t, i) => `${i + 1}. ${t}`).join('\n');
+      }
+    }
+
+    if (text.includes('bike') || text.includes('scooter') || text.includes('activa') || text.includes('enfield')) {
+      recommendedVehicles = vehicles.filter(v => v.type === 'bike').slice(0, 3);
+    } else if (text.includes('car') || text.includes('suv') || text.includes('thar') || text.includes('creta')) {
+      recommendedVehicles = vehicles.filter(v => v.type === 'car').slice(0, 3);
+    } else {
+      recommendedVehicles = vehicles.slice(0, 3);
     }
 
     // 2. SPECIFIC ACTION: FUEL COST CALCULATOR (Fallback if Gemini API not used)

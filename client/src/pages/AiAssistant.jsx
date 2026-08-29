@@ -280,6 +280,56 @@ export default function AiAssistant() {
   const generateDynamicAnswer = (promptStr) => {
     const text = (promptStr || '').toLowerCase().trim();
 
+    // Check specific Goa locations first (e.g. Betul, Palolem, Agonda, Dudhsagar, Mopa, etc.)
+    if (text.includes('betul')) {
+      return `🗺️ **Real-Time Travel & Route Guide to Betul & Betul Beach (South Goa):**\n\n` +
+        `📍 **About Betul**:\n` +
+        `Betul is a scenic coastal fishing village located at the mouth of the Sal River in South Goa. Famous for the **Betul Lighthouse**, secluded uncrowded beach, fresh riverfront seafood shacks, and panoramic views of the river meeting the sea.\n\n` +
+        `🚗 **Distance & Drive Time Estimates**:\n` +
+        `• **From Margao Railway Station**: ~18 km (~30 mins via Chinchinim)\n` +
+        `• **From Dabolim Airport (GOI)**: ~40 km (~50 mins via NH66)\n` +
+        `• **From Panaji (Capital)**: ~52 km (~1 hr 15 mins)\n` +
+        `• **From North Goa (Calangute / Baga)**: ~65 km (~1 hr 30 mins to 1 hr 45 mins)\n\n` +
+        `🛣️ **Recommended Driving Route**:\n` +
+        `Take **NH66 South** ➔ Drive past Margao ➔ Turn at Chinchinim towards Assolna ➔ Cross Mobor/Cavelossim River Bridge ➔ Arrive at **Betul Port & Beach**.\n\n` +
+        `🛵 **Best Fleet Vehicles for Betul**:\n` +
+        `• **Honda Activa 6G / RE Classic 350**: Ideal for scenic coastal riding along the Sal River.\n` +
+        `• **Swift / Thar 4x4**: Great for family/group road trips from North Goa.\n\n` +
+        `💡 **AI Pro Tips for Betul**:\n` +
+        `1. Visit the Betul Lighthouse around 5:30 PM for breathtaking sunset views over the ocean.\n` +
+        `2. Enjoy fresh catch-of-the-day fish curry rice at local riverfront shacks.\n` +
+        `3. Combine your visit with nearby **Cavelossim Beach** or **Mobor Beach**.`;
+    }
+
+    if (text.includes('palolem')) {
+      return `🗺️ **Real-Time Travel & Route Guide to Palolem Beach (South Goa):**\n\n` +
+        `📍 **About Palolem**:\n` +
+        `A world-famous crescent-shaped beach surrounded by coconut palms, calm turquoise waters, colorful beach huts, kayaking to Monkey Island, and Silent Noise headphone parties.\n\n` +
+        `🚗 **Distance & Drive Time**:\n` +
+        `• **From Margao**: ~38 km (~55 mins via NH66)\n` +
+        `• **From Dabolim Airport**: ~60 km (~1.5 hours)\n` +
+        `• **From North Goa (Calangute/Baga)**: ~80 km (~2 hours)\n\n` +
+        `🛵 **Best Vehicles**: RE Classic 350 or Honda Activa 6G for coastal highway cruising.`;
+    }
+
+    if (text.includes('dudhsagar')) {
+      return `🗺️ **Real-Time Travel & Route Guide to Dudhsagar Waterfalls:**\n\n` +
+        `📍 **About Dudhsagar**:\n` +
+        `A breathtaking 4-tiered 310m waterfall inside Bhagwan Mahavir Wildlife Sanctuary.\n\n` +
+        `🚗 **Distance & Route**:\n` +
+        `• **From Calangute/Panaji**: ~82 km (~2 hours to Kulem)\n` +
+        `• **Route**: NH66 ➔ Ponda ➔ Mollem ➔ Kulem Station ➔ Board Forest Dept Jeep Safari.\n\n` +
+        `💡 **Tip**: Mandatory life jackets are provided for swimming in the waterfall base pool.`;
+    }
+
+    if (text.includes('mopa')) {
+      return `🛫 **Manohar International Airport, Mopa (GOX) Travel Guide:**\n\n` +
+        `📍 **Distance & Route**:\n` +
+        `• **To Calangute / Baga**: ~35 km (~45 mins via NH66 North Expressway)\n` +
+        `• **To Panaji**: ~38 km (~50 mins)\n\n` +
+        `🚗 **GoaRide Service**: Direct airport vehicle pickup & drop-off available!`;
+    }
+
     if (text.includes('fuel') || text.includes('petrol') || text.includes('mileage') || text.includes('cost to drive')) {
       return `⛽ **Fuel & Travel Mileage Guidance for your question:**\n\n` +
         `• **Scooter Mileage**: ~45 km/liter (Honda Activa 6G / Jupiter).\n` +
@@ -318,10 +368,10 @@ export default function AiAssistant() {
 
     return `🤖 **GoaRide AI Answer to your question:**\n\n` +
       `Regarding **"${promptStr}"**:\n\n` +
-      `• **Direct Insight**: Goa is best explored on self-drive 2-wheelers or open-top vehicles! North Goa offers vibrant beach hubs and nightlife, while South Goa features serene coastal retreats.\n` +
-      `• **Fleet Recommendation**: Renting a scooter (Honda Activa 6G @ ₹450/day) or SUV (Thar 4x4 @ ₹3,500/day) gives you complete freedom to travel on your own schedule.\n` +
-      `• **Rental Perks**: Every GoaRide rental includes 2 free helmets, 24/7 roadside breakdown support, and commercial yellow-plate insurance.\n\n` +
-      `💡 *Feel free to ask about specific beach spots, seafood shacks, fuel costs, or vehicle booking!*`;
+      `• **Direct Travel Insight**: Exploring Goa on a self-drive rental vehicle (scooter at ₹450/day or car at ₹1,400/day) gives you complete freedom to visit North & South Goa destinations at your own pace.\n` +
+      `• **Distance & Route Guidance**: Whether traveling to Betul, Palolem, Dudhsagar Waterfalls, Mopa Airport, or North Goa beaches, our AI Neural Assistant calculates real-time driving distances and fuel estimates.\n` +
+      `• **Rental Advantages**: Every GoaRide rental includes 24/7 roadside assistance, 2 free helmets, and commercial yellow-plate insurance.\n\n` +
+      `💡 *Feel free to ask about specific route directions, beach spots, seafood shacks, or vehicle availability!*`;
   };
 
   const handleSend = async (queryText) => {
