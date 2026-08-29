@@ -67,13 +67,13 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['PENDING', 'PAID', 'FAILED', 'REFUNDED'],
+      enum: ['PENDING', 'PAID', 'UNPAID', 'FAILED', 'REFUNDED'],
       default: 'PENDING',
     },
     bookingStatus: {
       type: String,
       enum: ['PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'REJECTED'],
-      default: 'CONFIRMED',
+      default: 'PENDING',
     },
     trackingId: {
       type: String,

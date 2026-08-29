@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import VehicleCard from '../components/VehicleCard';
 import BookingModal from '../components/BookingModal';
-import { Calendar, Heart, User, Star, MapPin, Camera, Upload, Check, Navigation, ShieldCheck, Radio, Trash2 } from 'lucide-react';
+import InvoiceModal from '../components/InvoiceModal';
+import { Calendar, Heart, User, Star, MapPin, Camera, Upload, Check, Navigation, ShieldCheck, Radio, Trash2, Printer } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function Bookings() {
@@ -18,6 +19,7 @@ export default function Bookings() {
   const [loading, setLoading] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [selectedInvoiceBooking, setSelectedInvoiceBooking] = useState(null);
 
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -291,15 +293,25 @@ export default function Bookings() {
                       <span className="text-xl sm:text-2xl font-black text-sky-600 dark:text-cyan-400">₹{b.totalAmount}</span>
                       <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold">Tracking ID: {b.trackingId || 'TRK-8901'}</span>
 
-                      <div className="flex items-center gap-2 pt-1">
-                        {/* TRACK MY BOOKED VEHICLE BUTTON (Only for active non-cancelled bookings) */}
+                      <div className="flex items-center gap-2 pt-1 flex-wrap">
+                        {/* PRINT TAX INVOICE BUTTON */}
+                        <button
+                          onClick={() => setSelectedInvoiceBooking(b)}
+                          className="px-3 py-1.5 rounded-lg bg-sky-100 dark:bg-cyan-950/80 hover:bg-sky-200 text-sky-800 dark:text-cyan-300 border border-sky-300 dark:border-cyan-500/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                          title="View & Print Official Tax Invoice"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
+                          <span>Invoice 🖨️</span>
+                        </button>
+
+                        {/* TRACK MY BOOKED VEHICLE BUTTON */}
                         {!isCancelled && (
                           <button
                             onClick={() => handleTrackBookedVehicle(b)}
                             className="px-3.5 py-1.5 rounded-lg bg-orange-100 dark:bg-orange-950/80 hover:bg-orange-200 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-500/40 text-xs font-black flex items-center gap-1.5 shadow-sm transition-all"
                           >
                             <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400 animate-pulse" />
-                            <span>Track My Vehicle 🛰️</span>
+                            <span>Track Vehicle 🛰️</span>
                           </button>
                         )}
 
@@ -324,13 +336,13 @@ export default function Bookings() {
                           </button>
                         )}
 
-                      <button
-                        onClick={() => setReviewBooking(b)}
-                        className="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40 text-xs font-bold hover:bg-amber-200 transition-colors flex items-center gap-1"
-                      >
-                        <Star className="w-3.5 h-3.5" /> Rate Ride
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => setReviewBooking(b)}
+                          className="px-3 py-1.5 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40 text-xs font-bold hover:bg-amber-200 transition-colors flex items-center gap-1"
+                        >
+                          <Star className="w-3.5 h-3.5" /> Rate Ride
+                        </button>
+                      </div>
                   </div>
 
                 </div>
@@ -502,6 +514,10 @@ export default function Bookings() {
 
       {selectedVehicle && (
         <BookingModal vehicle={selectedVehicle} onClose={() => setSelectedVehicle(null)} onSuccess={fetchMyBookings} />
+      )}
+
+      {selectedInvoiceBooking && (
+        <InvoiceModal booking={selectedInvoiceBooking} onClose={() => setSelectedInvoiceBooking(null)} />
       )}
 
     </div>
