@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { X, Calendar, MapPin, ShieldCheck, CreditCard, QrCode, CheckCircle2, AlertCircle, ArrowLeft, Clock, Zap, Lock, Smartphone } from 'lucide-react';
+import InvoiceModal from './InvoiceModal';
+import { X, Calendar, MapPin, ShieldCheck, CreditCard, QrCode, CheckCircle2, AlertCircle, ArrowLeft, Clock, Zap, Lock, Smartphone, ExternalLink } from 'lucide-react';
 
 export default function BookingModal({ vehicle, onClose, onSuccess }) {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
   const [priceBreakdown, setPriceBreakdown] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [createdBooking, setCreatedBooking] = useState(null);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   const [timeLeft, setTimeLeft] = useState(300);
 
@@ -163,7 +165,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
           order_id: orderData.orderId,
           handler: async function (response) {
             try {
-              await API.post('/payments/verify', {
+              const { data: verifyData } = await API.post('/payments/verify', {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
@@ -171,11 +173,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
                 amount: priceBreakdown.total,
                 isDevMode: false,
               });
-              showToast(`🎉 Payment Verified! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
-              setLoading(false);
-              onClose();
-              if (onSuccess) onSuccess(createdBooking);
-              navigate('/bookings');
+              handlePaymentSuccess();
             } catch (err) {
               setLoading(false);
               showToast('Payment verification failed.', 'error');
@@ -206,11 +204,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
           isDevMode: true,
         });
 
-        showToast(`🎉 Payment Verified! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
-        setLoading(false);
-        onClose();
-        if (onSuccess) onSuccess(createdBooking);
-        navigate('/bookings');
+        handlePaymentSuccess();
       }
     } catch (error) {
       setLoading(false);
@@ -236,11 +230,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
         isDevMode: true,
       });
 
-      showToast(`🎉 UPI Payment Verified! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
-      setLoading(false);
-      onClose();
-      if (onSuccess) onSuccess(createdBooking);
-      navigate('/bookings');
+      handlePaymentSuccess();
     } catch (error) {
       setLoading(false);
       showToast('Payment verification failed. Try again.', 'error');
@@ -263,15 +253,38 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
         isDevMode: true,
       });
 
-      showToast(`🎉 Card Payment Successful! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
-      setLoading(false);
-      onClose();
-      if (onSuccess) onSuccess(createdBooking);
-      navigate('/bookings');
+      handlePaymentSuccess();
     } catch (error) {
       setLoading(false);
       showToast('Card processing failed.', 'error');
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setLoading(false);
+    showToast(`🎉 Payment Verified! Booking Confirmed: ${createdBooking.bookingNumber}`, 'success');
+    if (onSuccess) onSuccess(createdBooking);
+    setShowInvoice(true);
+  };
+
+  const handleLaunchUpiApp = (appName = 'general') => {
+    const amount = priceBreakdown?.total || 0;
+    const bNum = createdBooking?.bookingNumber || 'GoaRide';
+    const upiBase = `pa=goaride@upi&pn=GoaRide&am=${amount}&cu=INR&tn=Booking_${bNum}`;
+    
+    let deepLink = `upi://pay?${upiBase}`;
+    if (appName === 'gpay') {
+      deepLink = `tez://upi/pay?${upiBase}`;
+    } else if (appName === 'phonepe') {
+      deepLink = `phonepe://pay?${upiBase}`;
+    } else if (appName === 'paytm') {
+      deepLink = `paytmmp://pay?${upiBase}`;
+    } else if (appName === 'cred') {
+      deepLink = `cred://pay?${upiBase}`;
+    }
+
+    showToast(`Opening ${appName.toUpperCase()} Payment App...`, 'info');
+    window.location.href = deepLink;
   };
 
   const formatTime = (seconds) => {
@@ -528,9 +541,22 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
               </div>
             )}
 
-            {/* TAB 2: INSTANT UPI QR CODE */}
+            {/* TAB 2: INSTANT UPI QR CODE & DIRECT APP LAUNCHERS */}
             {paymentTab === 'upi' && (
               <div className="space-y-4">
+                
+                {/* Direct Payment App Launch Button */}
+                <button
+                  type="button"
+                  onClick={() => handleLaunchUpiApp('general')}
+                  className="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-sky-600 to-teal-600 hover:from-blue-500 text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.01]"
+                >
+                  <Smartphone className="w-4 h-4 text-cyan-300" />
+                  <span>Launch & Pay in App (GPay / PhonePe / Paytm) →</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+
+                {/* QR Code Container */}
                 <div className="max-w-xs mx-auto p-4 rounded-3xl bg-slate-50 dark:bg-slate-900 border-2 border-sky-500/40 shadow-xl space-y-3">
                   <img
                     src={qrCodeUrl}
@@ -542,12 +568,52 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
                   </div>
                 </div>
 
-                <div className="flex justify-center items-center gap-2 text-[10px] text-slate-600 dark:text-slate-400 font-bold">
-                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">GPay</span>
-                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">PhonePe</span>
-                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">Paytm</span>
-                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">BHIM</span>
-                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">CRED</span>
+                {/* Interactive UPI App Choice Launcher Buttons */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
+                    Choose Your UPI Payment App
+                  </span>
+                  <div className="flex flex-wrap justify-center items-center gap-2 text-xs font-extrabold">
+                    <button
+                      type="button"
+                      onClick={() => handleLaunchUpiApp('gpay')}
+                      className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 transition-all flex items-center gap-1 shadow-xs"
+                    >
+                      <span>🔷 GPay</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLaunchUpiApp('phonepe')}
+                      className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 hover:bg-purple-100 transition-all flex items-center gap-1 shadow-xs"
+                    >
+                      <span>🟣 PhonePe</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLaunchUpiApp('paytm')}
+                      className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 transition-all flex items-center gap-1 shadow-xs"
+                    >
+                      <span>💙 Paytm</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLaunchUpiApp('bhim')}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-all flex items-center gap-1 shadow-xs"
+                    >
+                      <span>🇮🇳 BHIM</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLaunchUpiApp('cred')}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1 shadow-xs"
+                    >
+                      <span>💳 CRED</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-bold">
@@ -566,7 +632,7 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>I Have Scanned & Paid ₹{priceBreakdown.total}</span>
+                      <span>Confirm & Verify Paid ₹{priceBreakdown.total}</span>
                     </>
                   )}
                 </button>
@@ -653,6 +719,19 @@ export default function BookingModal({ vehicle, onClose, onSuccess }) {
         )}
 
       </div>
+
+      {showInvoice && createdBooking && (
+        <InvoiceModal
+          booking={createdBooking}
+          onClose={() => {
+            setShowInvoice(false);
+            onClose();
+            if (onSuccess) onSuccess(createdBooking);
+            navigate('/bookings');
+          }}
+        />
+      )}
+
     </div>
   );
 }
