@@ -229,25 +229,25 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 p-6 sm:p-8 rounded-3xl glass-panel border border-amber-500/25 dark:border-amber-500/25 text-center shadow-md">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
-              {allVehicles.length > 0 ? `${allVehicles.length}+` : '19+'}
+              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${allVehicles.length}+` : '19+'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Verified Fleet Vehicles</p>
           </div>
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-cyan-500 dark:text-cyan-400">
-              {allVehicles.length > 0 ? `${allVehicles.reduce((acc, v) => acc + (v.reviewCount || 12), 0)}+` : '140+'}
+              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${allVehicles.reduce((acc, v) => acc + (v?.reviewCount || 12), 0)}+` : '140+'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Verified Tourist Reviews</p>
           </div>
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-emerald-500 dark:text-emerald-400">
-              {allVehicles.length > 0 ? `${new Set(allVehicles.map(v => v.location)).size}` : '9'}
+              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${new Set(allVehicles.filter(Boolean).map(v => v?.location)).size}` : '9'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Active Goa Pickup Hubs</p>
           </div>
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
-              {allVehicles.length > 0 ? `${(allVehicles.reduce((acc, v) => acc + (v.rating || 4.9), 0) / allVehicles.length).toFixed(1)}⭐` : '4.9⭐'}
+              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${(allVehicles.reduce((acc, v) => acc + (v?.rating || 4.9), 0) / allVehicles.length).toFixed(1)}⭐` : '4.9⭐'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Fleet Customer Rating</p>
           </div>
