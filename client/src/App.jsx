@@ -31,42 +31,38 @@ function ScrollToTop() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b1727] text-slate-900 dark:text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden transition-colors duration-300">
-            {/* Visual Interactive Background & Custom Cursor Effects */}
-            <AnimatedBackground />
-            <CustomCursor />
+    <Router>
+      <ScrollToTop />
+      <div className="relative min-h-screen flex flex-col bg-slate-50 dark:bg-[#0b1727] text-slate-900 dark:text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] overflow-x-hidden transition-colors duration-300">
+        {/* Visual Interactive Background & Custom Cursor Effects */}
+        <AnimatedBackground />
+        <CustomCursor />
 
-            <Navbar />
-            
-            <main className="flex-grow z-10 relative">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/vehicles" element={<Vehicles />} />
-                <Route path="/vehicles/:id" element={<VehicleDetails />} />
-                <Route path="/tracking" element={<Tracking />} />
-                <Route path="/ai-assistant" element={<AiAssistant />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+        <Navbar />
+        
+        <main className="flex-grow z-10 relative">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/vehicles/:id" element={<VehicleDetails />} />
+            <Route path="/tracking" element={<Tracking />} />
+            <Route path="/ai-assistant" element={<AiAssistant />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-                {/* User Protected Routes */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/bookings" element={<Bookings />} />
-                </Route>
+            {/* User Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/bookings" element={<Bookings />} />
+            </Route>
 
-                {/* Direct Admin Route */}
-                <Route path="/admin" element={<AdminDashboard />} />
+            {/* Direct Admin Route */}
+            <Route path="/admin" element={<AdminDashboard />} />
 
-              </Routes>
-            </main>
+          </Routes>
+        </main>
 
-            <Footer />
-          </div>
-        </Router>
-      </AuthProvider>
-    </ToastProvider>
+        <Footer />
+      </div>
+    </Router>
   );
 }
