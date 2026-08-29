@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PhoneCall, Instagram, MessageCircle, Mail, Phone, Facebook, Youtube } from 'lucide-react';
+import { PhoneCall, Instagram, MessageCircle, Mail, Phone, Facebook } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -83,15 +83,6 @@ export default function Footer() {
             className="p-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 transition-all hover:scale-110"
           >
             <Facebook className="w-4 h-4" />
-          </a>
-          <a
-            href="https://youtube.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="YouTube Channel"
-            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-all hover:scale-110"
-          >
-            <Youtube className="w-4 h-4" />
           </a>
         </div>
 
