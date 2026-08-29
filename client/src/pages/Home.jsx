@@ -86,68 +86,49 @@ export default function Home() {
       name: 'Calangute & Baga',
       locationQuery: 'Calangute',
       subtitle: 'Water sports & lively beach shacks',
-      image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Panaji Latin Quarter',
       locationQuery: 'Panaji',
       subtitle: 'Colorful Portuguese Fontainhas heritage',
-      image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Chapora Fort & Vagator',
       locationQuery: 'Vagator',
       subtitle: 'Iconic sunset cliffside views',
-      image: 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Palolem & South Goa',
       locationQuery: 'Palolem',
       subtitle: 'Tranquil crescent bays & kayaking',
-      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Dudhsagar Waterfalls',
       locationQuery: 'Dudhsagar',
       subtitle: '4-tiered jungle waterfall safari',
-      image: 'https://images.unsplash.com/photo-1589139049929-1976077ff3e3?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1589139049929-1976077ff3e3?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Old Goa Cathedrals',
       locationQuery: 'Old Goa',
       subtitle: '16th century UNESCO cathedrals',
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Betul Beach & Estuary',
       locationQuery: 'Betul',
       subtitle: 'Sal river mouth & lighthouse sunset',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1000&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
     },
     {
       name: 'Anjuna Boho Coast',
       locationQuery: 'Anjuna',
       subtitle: 'Bohemian markets & beach lounges',
-      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1000&auto=format&fit=crop',
-    },
-  ];
-
-  const faqs = [
-    {
-      q: 'What documents are required to rent a bike or car in Goa?',
-      a: 'You generally need an original valid Driving License (DL) and a government photo ID proof (Aadhaar or Passport).',
-    },
-    {
-      q: 'Can I cancel or modify my booking?',
-      a: 'Yes! You can easily cancel your booking from your My Bookings dashboard.',
-    },
-    {
-      q: 'How does live vehicle tracking work?',
-      a: 'Once your booking is confirmed, select your booked vehicle on the Live Tracking page to view GPS locations on our interactive Goa map.',
-    },
-    {
-      q: 'Are helmets and roadside assistance included?',
-      a: 'Yes, 2 complimentary helmets are provided with all bike rentals, along with 24/7 roadside emergency support across Goa.',
+      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
     },
   ];
 
@@ -248,25 +229,25 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 p-6 sm:p-8 rounded-3xl glass-panel border border-amber-500/25 dark:border-amber-500/25 text-center shadow-md">
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
-              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${allVehicles.length}+` : '19+'}
+              {allVehicles.length > 0 ? `${allVehicles.length}+` : '19+'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Verified Fleet Vehicles</p>
           </div>
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-cyan-500 dark:text-cyan-400">
-              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${allVehicles.reduce((acc, v) => acc + (v?.reviewCount || 12), 0)}+` : '140+'}
+              {allVehicles.length > 0 ? `${allVehicles.reduce((acc, v) => acc + (v.reviewCount || 12), 0)}+` : '140+'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Verified Tourist Reviews</p>
           </div>
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-emerald-500 dark:text-emerald-400">
-              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${new Set(allVehicles.filter(Boolean).map(v => v?.location)).size}` : '9'}
+              {allVehicles.length > 0 ? `${new Set(allVehicles.map(v => v.location)).size}` : '9'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Active Goa Pickup Hubs</p>
           </div>
           <div>
             <h2 className="text-2xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
-              {Array.isArray(allVehicles) && allVehicles.length > 0 ? `${(allVehicles.reduce((acc, v) => acc + (v?.rating || 4.9), 0) / allVehicles.length).toFixed(1)}⭐` : '4.9⭐'}
+              {allVehicles.length > 0 ? `${(allVehicles.reduce((acc, v) => acc + (v.rating || 4.9), 0) / allVehicles.length).toFixed(1)}⭐` : '4.9⭐'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">Fleet Customer Rating</p>
           </div>
