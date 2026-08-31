@@ -24,12 +24,83 @@ export default function Home() {
 
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
+  const [explorePlaces, setExplorePlaces] = useState([
+    {
+      _id: '1',
+      name: 'Calangute & Baga',
+      locationQuery: 'Calangute',
+      subtitle: 'Water sports & lively beach shacks',
+      image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '2',
+      name: 'Panaji Latin Quarter',
+      locationQuery: 'Panaji',
+      subtitle: 'Colorful Portuguese Fontainhas heritage',
+      image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '3',
+      name: 'Chapora Fort & Vagator',
+      locationQuery: 'Vagator',
+      subtitle: 'Iconic sunset cliffside views',
+      image: 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '4',
+      name: 'Palolem & South Goa',
+      locationQuery: 'Palolem',
+      subtitle: 'Tranquil crescent bays & kayaking',
+      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '5',
+      name: 'Dudhsagar Waterfalls',
+      locationQuery: 'Dudhsagar',
+      subtitle: '4-tiered jungle waterfall safari',
+      image: 'https://images.unsplash.com/photo-1589139049929-1976077ff3e3?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '6',
+      name: 'Old Goa Cathedrals',
+      locationQuery: 'Old Goa',
+      subtitle: '16th century UNESCO cathedrals',
+      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '7',
+      name: 'Betul Beach & Estuary',
+      locationQuery: 'Betul',
+      subtitle: 'Sal river mouth & lighthouse sunset',
+      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+    },
+    {
+      _id: '8',
+      name: 'Anjuna Boho Coast',
+      locationQuery: 'Anjuna',
+      subtitle: 'Bohemian markets & beach lounges',
+      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
+    },
+  ]);
+
   useEffect(() => {
     fetchVehicles();
+    fetchExplorePlaces();
     if (user) {
       fetchFavorites();
     }
   }, [user]);
+
+  const fetchExplorePlaces = async () => {
+    try {
+      const { data } = await API.get('/explore-places');
+      if (Array.isArray(data) && data.length > 0) {
+        setExplorePlaces(data);
+      }
+    } catch (error) {
+      console.warn('Explore places dynamic fetch fallback:', error?.message);
+    }
+  };
 
   const fetchVehicles = async () => {
     try {
@@ -80,57 +151,6 @@ export default function Home() {
     const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
     navigate(`/vehicles${queryString}`);
   };
-
-  const explorePlaces = [
-    {
-      name: 'Calangute & Baga',
-      locationQuery: 'Calangute',
-      subtitle: 'Water sports & lively beach shacks',
-      image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Panaji Latin Quarter',
-      locationQuery: 'Panaji',
-      subtitle: 'Colorful Portuguese Fontainhas heritage',
-      image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Chapora Fort & Vagator',
-      locationQuery: 'Vagator',
-      subtitle: 'Iconic sunset cliffside views',
-      image: 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Palolem & South Goa',
-      locationQuery: 'Palolem',
-      subtitle: 'Tranquil crescent bays & kayaking',
-      image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Dudhsagar Waterfalls',
-      locationQuery: 'Dudhsagar',
-      subtitle: '4-tiered jungle waterfall safari',
-      image: 'https://images.unsplash.com/photo-1589139049929-1976077ff3e3?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Old Goa Cathedrals',
-      locationQuery: 'Old Goa',
-      subtitle: '16th century UNESCO cathedrals',
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Betul Beach & Estuary',
-      locationQuery: 'Betul',
-      subtitle: 'Sal river mouth & lighthouse sunset',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
-    },
-    {
-      name: 'Anjuna Boho Coast',
-      locationQuery: 'Anjuna',
-      subtitle: 'Bohemian markets & beach lounges',
-      image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
-    },
-  ];
 
   const faqs = [
     {

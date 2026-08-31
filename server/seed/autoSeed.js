@@ -2,6 +2,74 @@ import User from '../models/User.js';
 import Vehicle from '../models/Vehicle.js';
 import Location from '../models/Location.js';
 import Review from '../models/Review.js';
+import ExplorePlace from '../models/ExplorePlace.js';
+
+const initialExplorePlaces = [
+  {
+    name: 'Calangute & Baga',
+    locationQuery: 'Calangute',
+    subtitle: 'Water sports & lively beach shacks',
+    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200&auto=format&fit=crop',
+    order: 1,
+    isActive: true,
+  },
+  {
+    name: 'Panaji Latin Quarter',
+    locationQuery: 'Panaji',
+    subtitle: 'Colorful Portuguese Fontainhas heritage',
+    image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=1200&auto=format&fit=crop',
+    order: 2,
+    isActive: true,
+  },
+  {
+    name: 'Chapora Fort & Vagator',
+    locationQuery: 'Vagator',
+    subtitle: 'Iconic sunset cliffside views',
+    image: 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?q=80&w=1200&auto=format&fit=crop',
+    order: 3,
+    isActive: true,
+  },
+  {
+    name: 'Palolem & South Goa',
+    locationQuery: 'Palolem',
+    subtitle: 'Tranquil crescent bays & kayaking',
+    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
+    order: 4,
+    isActive: true,
+  },
+  {
+    name: 'Dudhsagar Waterfalls',
+    locationQuery: 'Dudhsagar',
+    subtitle: '4-tiered jungle waterfall safari',
+    image: 'https://images.unsplash.com/photo-1589139049929-1976077ff3e3?q=80&w=1200&auto=format&fit=crop',
+    order: 5,
+    isActive: true,
+  },
+  {
+    name: 'Old Goa Cathedrals',
+    locationQuery: 'Old Goa',
+    subtitle: '16th century UNESCO cathedrals',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop',
+    order: 6,
+    isActive: true,
+  },
+  {
+    name: 'Betul Beach & Estuary',
+    locationQuery: 'Betul',
+    subtitle: 'Sal river mouth & lighthouse sunset',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+    order: 7,
+    isActive: true,
+  },
+  {
+    name: 'Anjuna Boho Coast',
+    locationQuery: 'Anjuna',
+    subtitle: 'Bohemian markets & beach lounges',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
+    order: 8,
+    isActive: true,
+  },
+];
 
 const initialLocations = [
   { name: 'Panaji', address: 'MG Road, Panaji, Goa', latitude: 15.4989, longitude: 73.8278 },
@@ -400,9 +468,15 @@ const initialVehicles = [
 
 export const autoSeedIfEmpty = async () => {
   try {
+    const existingPlacesCount = await ExplorePlace.countDocuments();
+    if (existingPlacesCount === 0) {
+      await ExplorePlace.insertMany(initialExplorePlaces);
+      console.log(`✅ Auto-seeded ${initialExplorePlaces.length} Places to Explore in Goa into MongoDB!`);
+    }
+
     const existingVehicleCount = await Vehicle.countDocuments();
     if (existingVehicleCount > 0) {
-      console.log(`ℹ️ MongoDB contains ${existingVehicleCount} existing vehicles. Skipping seed to preserve all user data.`);
+      console.log(`ℹ️ MongoDB contains ${existingVehicleCount} existing vehicles. Skipping vehicle seed to preserve all user data.`);
       return;
     }
 

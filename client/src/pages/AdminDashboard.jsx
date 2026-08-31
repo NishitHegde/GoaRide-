@@ -4,7 +4,7 @@ import { socket } from '../services/socket';
 import { useToast } from '../context/ToastContext';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { Shield, Car, Calendar, Users, DollarSign, Plus, Edit, Trash2, CheckCircle, RefreshCw, X, Radio, AlertTriangle, MapPin, Gauge, TrendingUp, Wallet, Wrench, ShieldCheck } from 'lucide-react';
+import { Shield, Car, Calendar, Users, DollarSign, Plus, Edit, Trash2, CheckCircle, RefreshCw, X, Radio, AlertTriangle, MapPin, Gauge, TrendingUp, Wallet, Wrench, ShieldCheck, Compass } from 'lucide-react';
 
 const liveCarIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3202/3202003.png',
@@ -29,7 +29,17 @@ export default function AdminDashboard() {
   const [vehicles, setVehicles] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
+  const [adminExplorePlaces, setAdminExplorePlaces] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Explore Places Modal State
+  const [exploreModalOpen, setExploreModalOpen] = useState(false);
+  const [editingExploreId, setEditingExploreId] = useState(null);
+  const [placeName, setPlaceName] = useState('');
+  const [placeQuery, setPlaceQuery] = useState('');
+  const [placeSubtitle, setPlaceSubtitle] = useState('');
+  const [placeImage, setPlaceImage] = useState('');
+  const [placeOrder, setPlaceOrder] = useState(0);
 
   // Master Telemetry Fleet Map State
   const [masterFleetGps, setMasterFleetGps] = useState([
@@ -95,22 +105,83 @@ export default function AdminDashboard() {
   const fetchAdminDashboardData = async () => {
     try {
       setLoading(true);
-      const [statsRes, vehiclesRes, bookingsRes, usersRes] = await Promise.allSettled([
+      const [statsRes, vehiclesRes, bookingsRes, usersRes, exploreRes] = await Promise.allSettled([
         API.get('/admin/dashboard'),
         API.get('/vehicles'),
         API.get('/bookings'),
         API.get('/users'),
+        API.get('/explore-places/admin'),
       ]);
 
       if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
       if (vehiclesRes.status === 'fulfilled') setVehicles(Array.isArray(vehiclesRes.value.data) ? vehiclesRes.value.data : (vehiclesRes.value.data?.value || []));
       if (bookingsRes.status === 'fulfilled') setBookings(Array.isArray(bookingsRes.value.data) ? bookingsRes.value.data : []);
       if (usersRes.status === 'fulfilled') setUsers(Array.isArray(usersRes.value.data) ? usersRes.value.data : []);
+      if (exploreRes.status === 'fulfilled') setAdminExplorePlaces(Array.isArray(exploreRes.value.data) ? exploreRes.value.data : []);
 
       setLoading(false);
     } catch (error) {
       console.error('Admin Dashboard Load Error:', error);
       setLoading(false);
+    }
+  };
+
+  const openAddExploreModal = () => {
+    setEditingExploreId(null);
+    setPlaceName('');
+    setPlaceQuery('');
+    setPlaceSubtitle('');
+    setPlaceImage('');
+    setPlaceOrder(adminExplorePlaces.length + 1);
+    setExploreModalOpen(true);
+  };
+
+  const openEditExploreModal = (place) => {
+    setEditingExploreId(place._id);
+    setPlaceName(place.name || '');
+    setPlaceQuery(place.locationQuery || '');
+    setPlaceSubtitle(place.subtitle || '');
+    setPlaceImage(place.image || '');
+    setPlaceOrder(place.order || 0);
+    setExploreModalOpen(true);
+  };
+
+  const handleSaveExplorePlace = async (e) => {
+    e.preventDefault();
+    if (!placeName || !placeQuery || !placeSubtitle || !placeImage) {
+      showToast('Please fill in all place details', 'error');
+      return;
+    }
+    const payload = {
+      name: placeName,
+      locationQuery: placeQuery,
+      subtitle: placeSubtitle,
+      image: placeImage,
+      order: Number(placeOrder),
+    };
+    try {
+      if (editingExploreId) {
+        await API.put(`/explore-places/${editingExploreId}`, payload);
+        showToast('Explore place updated in MongoDB!', 'success');
+      } else {
+        await API.post('/explore-places', payload);
+        showToast('New explore place created in MongoDB!', 'success');
+      }
+      setExploreModalOpen(false);
+      fetchAdminDashboardData();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to save place', 'error');
+    }
+  };
+
+  const handleDeleteExplorePlace = async (id, name) => {
+    if (!window.confirm(`Delete "${name}" from Places to Explore database?`)) return;
+    try {
+      await API.delete(`/explore-places/${id}`);
+      showToast('Explore place deleted from MongoDB', 'info');
+      fetchAdminDashboardData();
+    } catch (error) {
+      showToast('Failed to delete explore place', 'error');
     }
   };
 
@@ -321,6 +392,12 @@ export default function AdminDashboard() {
           Manage Vehicles ({vehicles.length})
         </button>
         <button
+          onClick={() => setActiveTab('explore')}
+          className={`pb-3 border-b-2 flex items-center gap-1.5 transition-colors flex-shrink-0 ${activeTab === 'explore' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
+        >
+          <Compass className="w-4 h-4 text-cyan-500" /> Places to Explore ({adminExplorePlaces.length})
+        </button>
+        <button
           onClick={() => setActiveTab('bookings')}
           className={`pb-3 border-b-2 transition-colors flex-shrink-0 ${activeTab === 'bookings' ? 'border-amber-600 dark:border-amber-400 text-amber-900 dark:text-amber-300 font-black' : 'border-transparent hover:text-slate-900 dark:hover:text-white'}`}
         >
@@ -521,6 +598,59 @@ export default function AdminDashboard() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: PLACES TO EXPLORE */}
+      {activeTab === 'explore' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">Manage Places to Explore in Goa</h3>
+              <p className="text-xs text-slate-500 font-medium">Add, edit, reorder, or update images of destinations shown on the homepage discovery carousel.</p>
+            </div>
+            <button
+              onClick={openAddExploreModal}
+              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md flex items-center gap-1.5 transition-all"
+            >
+              <Plus className="w-4 h-4" /> Add Destination
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {adminExplorePlaces.map((place) => (
+              <div key={place._id} className="glass-panel rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col justify-between shadow-md">
+                <div className="relative h-40 overflow-hidden">
+                  <img src={place.image} alt={place.name} className="w-full h-full object-cover" />
+                  <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-slate-950/80 text-white text-[10px] font-mono font-bold">
+                    Order: {place.order}
+                  </div>
+                </div>
+                <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-extrabold text-base text-slate-900 dark:text-white">{place.name}</h4>
+                    <p className="text-xs text-sky-600 dark:text-cyan-400 font-bold">Query: {place.locationQuery}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">{place.subtitle}</p>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <button
+                      onClick={() => openEditExploreModal(place)}
+                      className="flex-1 py-1.5 rounded-lg bg-sky-100 dark:bg-cyan-950/80 text-sky-800 dark:text-cyan-300 font-bold text-xs flex items-center justify-center gap-1 border border-sky-300 dark:border-cyan-500/30 hover:bg-sky-200"
+                    >
+                      <Edit className="w-3.5 h-3.5" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteExplorePlace(place._id, place.name)}
+                      className="py-1.5 px-3 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-bold text-xs border border-rose-300 dark:border-rose-500/30 hover:bg-rose-200"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -815,6 +945,95 @@ export default function AdminDashboard() {
                 </button>
                 <button type="submit" className="px-5 py-2 bg-amber-600 text-white font-bold rounded-xl shadow-md">
                   {editingVehicleId ? 'Update Vehicle' : 'Add Vehicle'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EXPLORE PLACE MODAL */}
+      {exploreModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-3">
+              <h3 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                <Compass className="w-5 h-5 text-cyan-500" />
+                <span>{editingExploreId ? 'Edit Destination' : 'Add Destination to Explore'}</span>
+              </h3>
+              <button onClick={() => setExploreModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExplorePlace} className="space-y-3 text-left text-xs font-semibold">
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">Destination Name</label>
+                <input
+                  type="text"
+                  value={placeName}
+                  onChange={(e) => setPlaceName(e.target.value)}
+                  placeholder="e.g., Calangute & Baga"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">Location Query Filter</label>
+                  <input
+                    type="text"
+                    value={placeQuery}
+                    onChange={(e) => setPlaceQuery(e.target.value)}
+                    placeholder="e.g., Calangute"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">Display Order</label>
+                  <input
+                    type="number"
+                    value={placeOrder}
+                    onChange={(e) => setPlaceOrder(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">Subtitle / Description</label>
+                <input
+                  type="text"
+                  value={placeSubtitle}
+                  onChange={(e) => setPlaceSubtitle(e.target.value)}
+                  placeholder="e.g., Water sports & lively beach shacks"
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 mb-1 font-bold">Image URL (High Definition photo)</label>
+                <input
+                  type="text"
+                  value={placeImage}
+                  onChange={(e) => setPlaceImage(e.target.value)}
+                  placeholder="https://images.unsplash.com/..."
+                  className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2 justify-end pt-3">
+                <button type="button" onClick={() => setExploreModalOpen(false)} className="px-4 py-2 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold rounded-xl">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-amber-600 text-white font-bold rounded-xl shadow-md">
+                  {editingExploreId ? 'Update Place' : 'Create Place'}
                 </button>
               </div>
             </form>

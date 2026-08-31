@@ -20,6 +20,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import tripRoutes from './routes/tripRoutes.js';
+import explorePlaceRoutes from './routes/explorePlaceRoutes.js';
 
 dotenv.config();
 
@@ -134,6 +135,9 @@ const startServer = async () => {
 
   app.use('/api/trips', tripRoutes);
   app.use('/trips', tripRoutes);
+
+  app.use('/api/explore-places', explorePlaceRoutes);
+  app.use('/explore-places', explorePlaceRoutes);
 
   // Error Handling Middleware
   app.use(notFound);
