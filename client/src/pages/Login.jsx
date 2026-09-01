@@ -1,26 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import API from '../services/api';
-import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
+import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
+import OtpVerificationCard from '../components/OtpVerificationCard';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // Unverified Account Resend State
+
+  // Unverified User OTP Card State
   const [isUnverified, setIsUnverified] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendStatus, setResendStatus] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +30,6 @@ export default function Login() {
       setLoading(true);
       setError('');
       setIsUnverified(false);
-      setResendStatus('');
 
       const user = await login(email.trim(), password);
       setLoading(false);
@@ -53,28 +49,10 @@ export default function Login() {
       if (errData?.isVerified === false || errMsg.toLowerCase().includes('verify')) {
         setIsUnverified(true);
         setUnverifiedEmail(errData?.email || email.trim());
+        setMaskedEmail(errData?.maskedEmail || email.trim());
+      } else {
+        setError(errMsg);
       }
-
-      setError(errMsg);
-    }
-  };
-
-  const handleResendFromLogin = async () => {
-    const targetEmail = unverifiedEmail || email.trim();
-    if (!targetEmail) return;
-
-    try {
-      setResendLoading(true);
-      setResendStatus('');
-      const { data } = await API.post('/auth/resend-verification', { email: targetEmail });
-      setResendLoading(false);
-      setResendStatus(data.message || 'Verification email sent! Check your inbox.');
-      showToast('Verification email resent successfully!', 'success');
-    } catch (err) {
-      setResendLoading(false);
-      const msg = err.response?.data?.message || 'Failed to resend verification link.';
-      setResendStatus(`Error: ${msg}`);
-      showToast(msg, 'error');
     }
   };
 
@@ -85,119 +63,104 @@ export default function Login() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-sky-500/10 dark:bg-cyan-500/15 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-[350px] h-[250px] bg-orange-500/10 dark:bg-purple-500/15 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md glass-panel p-8 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-6 shadow-2xl relative z-10">
-        
-        {/* Brand Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 dark:bg-cyan-500/10 text-sky-800 dark:text-cyan-300 text-xs font-extrabold border border-sky-200 dark:border-cyan-500/30">
-            <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
-            <span>Welcome Back</span>
+      {isUnverified ? (
+        /* GOOGLE-STYLE OTP CARD FOR UNVERIFIED LOGINS */
+        <OtpVerificationCard
+          email={unverifiedEmail}
+          maskedEmail={maskedEmail}
+          onVerificationSuccess={() => navigate('/bookings')}
+          onCancel={() => setIsUnverified(false)}
+        />
+      ) : (
+        /* STANDARD LOGIN FORM */
+        <div className="w-full max-w-md glass-panel p-8 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-6 shadow-2xl relative z-10">
+          
+          {/* Brand Header */}
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 dark:bg-cyan-500/10 text-sky-800 dark:text-cyan-300 text-xs font-extrabold border border-sky-200 dark:border-cyan-500/30">
+              <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" />
+              <span>Welcome Back</span>
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Login to GoaRide</h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Access your vehicle rentals, live tracking & trip bot</p>
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Login to GoaRide</h2>
-          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Access your vehicle rentals, live tracking & trip bot</p>
-        </div>
 
-        {error && (
-          <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold space-y-2">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          {error && (
+            <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
+          )}
 
-            {/* UNVERIFIED ACCOUNT PROMPT & RESEND BUTTON */}
-            {isUnverified && (
-              <div className="pt-2 border-t border-rose-200 dark:border-rose-800/60 space-y-2">
-                <p className="text-[11px] font-medium text-rose-700 dark:text-rose-300">
-                  Your email address (<strong>{unverifiedEmail}</strong>) has not been verified yet.
-                </p>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium shadow-sm transition-all"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium shadow-sm transition-all pr-10"
+                  required
+                />
                 <button
                   type="button"
-                  onClick={handleResendFromLogin}
-                  disabled={resendLoading}
-                  className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${resendLoading ? 'animate-spin' : ''}`} />
-                  <span>{resendLoading ? 'Sending Email...' : 'Resend Verification Email'}</span>
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            )}
-          </div>
-        )}
-
-        {resendStatus && (
-          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            <span>{resendStatus}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <Mail className="w-3.5 h-3.5 text-sky-600 dark:text-cyan-400" /> Email Address
-            </label>
-            <div className="relative">
-              <input
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium shadow-sm transition-all"
-                required
-              />
             </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 dark:from-cyan-500 dark:via-blue-600 dark:to-cyan-500 hover:from-sky-500 text-white font-bold text-sm shadow-xl shadow-sky-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
+          </form>
+
+          {/* Security Badge */}
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-semibold pt-1">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Encrypted 256-bit Secure Authentication</span>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1">
-              <Lock className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" /> Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-cyan-500 font-medium shadow-sm transition-all pr-10"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+          {/* Footer Link */}
+          <div className="text-center text-xs text-slate-600 dark:text-slate-400 font-medium pt-3 border-t border-slate-200 dark:border-slate-800">
+            Don't have a GoaRide account?{' '}
+            <Link to="/register" className="text-sky-600 dark:text-cyan-400 font-bold hover:underline">
+              Register Here
+            </Link>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-600 via-blue-600 to-sky-600 dark:from-cyan-500 dark:via-blue-600 dark:to-cyan-500 hover:from-sky-500 text-white font-bold text-sm shadow-xl shadow-sky-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-          >
-            <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-
-        </form>
-
-        {/* Security Badge */}
-        <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-semibold pt-1">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span>Encrypted 256-bit Secure Authentication</span>
         </div>
+      )}
 
-        {/* Footer Link */}
-        <div className="text-center text-xs text-slate-600 dark:text-slate-400 font-medium pt-3 border-t border-slate-200 dark:border-slate-800">
-          Don't have a GoaRide account?{' '}
-          <Link to="/register" className="text-sky-600 dark:text-cyan-400 font-bold hover:underline">
-            Register Here
-          </Link>
-        </div>
-
-      </div>
     </div>
   );
 }

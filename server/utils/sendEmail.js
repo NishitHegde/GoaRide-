@@ -1,36 +1,41 @@
 import nodemailer from 'nodemailer';
 
 /**
- * Sends a real verification email to a newly registered User.
+ * Helper to mask email for UI display (e.g. n****@gmail.com)
+ */
+export const maskEmail = (email) => {
+  if (!email || !email.includes('@')) return email;
+  const [localPart, domain] = email.split('@');
+  if (localPart.length <= 2) {
+    return `${localPart[0]}****@${domain}`;
+  }
+  return `${localPart[0]}${'*'.repeat(Math.min(localPart.length - 2, 4))}${localPart[localPart.length - 1]}@${domain}`;
+};
+
+/**
+ * Sends a real 6-digit verification OTP email to a newly registered or logging-in User.
  * 
  * @param {Object} options
  * @param {string} options.email - Recipient email address
  * @param {string} options.name - Recipient name
- * @param {string} options.token - Unhashed verification token
- * @param {string} options.role - 'USER' or 'ADMIN'
+ * @param {string} options.otp - 6-digit plain OTP
  */
-export const sendVerificationEmail = async ({ email, name, token, role = 'USER' }) => {
+export const sendOtpEmail = async ({ email, name, otp }) => {
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
   const smtpUser = process.env.SMTP_USER || process.env.SMTP_EMAIL;
   const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
-  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
   const fromEmail = process.env.EMAIL_FROM || `"GoaRide Verification" <${smtpUser || 'no-reply@goaride.com'}>`;
 
-  const verificationUrl = `${clientUrl}/verify-email/${token}`;
-  const isAdmin = role?.toUpperCase() === 'ADMIN';
-
-  // ALWAYS LOG VERIFICATION LINK TO SERVER TERMINAL CONSOLE
+  // Always log OTP to server terminal console for instant dev access / debugging
   console.log('\n================================================================');
-  console.log(`✉️ GOARIDE EMAIL VERIFICATION FOR: ${email}`);
-  console.log(`🔗 VERIFICATION LINK: ${verificationUrl}`);
+  console.log(`🔐 GOARIDE EMAIL OTP FOR: ${email}`);
+  console.log(`🔑 6-DIGIT VERIFICATION OTP: ${otp}`);
+  console.log('⏰ EXPIRES IN: 5 MINUTES');
   console.log('================================================================\n');
 
-  const subject = isAdmin
-    ? 'Verify your GoaRide Admin Account'
-    : 'Verify your GoaRide email address';
-
-  const badgeText = isAdmin ? 'ADMINISTRATOR ACTION REQUIRED' : 'EMAIL VERIFICATION';
+  const subject = 'Verify your email address';
+  const formattedOtp = otp.toString().split('').join(' ');
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -43,125 +48,119 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #0b1727;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background-color: #080f1e;
       color: #e2e8f0;
     }
     .container {
-      max-width: 600px;
-      margin: 40px auto;
-      background: #0f1d32;
+      max-width: 520px;
+      margin: 36px auto;
+      background: #0f172a;
       border: 1px solid #1e293b;
-      border-radius: 20px;
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6);
     }
     .header {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      padding: 35px 30px;
+      padding: 32px;
       text-align: center;
     }
-    .logo {
-      font-size: 32px;
+    .brand {
+      font-size: 30px;
       font-weight: 900;
       color: #ffffff;
-      letter-spacing: -1px;
-      text-decoration: none;
+      letter-spacing: -0.5px;
     }
-    .logo span {
+    .brand span {
       color: #f59e0b;
     }
     .badge {
       display: inline-block;
-      margin-top: 12px;
-      padding: 4px 12px;
+      margin-top: 10px;
+      padding: 4px 14px;
       background: rgba(255, 255, 255, 0.2);
       border-radius: 9999px;
       font-size: 11px;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       color: #ffffff;
     }
     .body {
-      padding: 35px 30px;
+      padding: 36px 32px;
       color: #cbd5e1;
       font-size: 15px;
       line-height: 1.6;
     }
     .greeting {
       font-size: 20px;
-      font-weight: 700;
+      font-weight: 800;
       color: #ffffff;
       margin-bottom: 12px;
     }
-    .btn-container {
-      text-align: center;
-      margin: 32px 0;
-    }
-    .btn {
-      display: inline-block;
-      padding: 16px 36px;
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #0f172a !important;
-      font-weight: 800;
-      font-size: 15px;
-      text-decoration: none;
-      border-radius: 12px;
-      box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
-      transition: all 0.2s ease;
-    }
-    .url-box {
+    .otp-card {
       background: #091322;
-      border: 1px solid #1e293b;
-      padding: 14px;
-      border-radius: 10px;
-      word-break: break-all;
-      font-size: 12px;
+      border: 2px border-amber-500/30;
+      border-radius: 18px;
+      padding: 24px;
+      text-align: center;
+      margin: 28px 0;
+      border: 1px solid #334155;
+    }
+    .otp-code {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 12px;
       color: #38bdf8;
-      margin-top: 20px;
+      margin: 8px 0;
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+    .timer-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f59e0b;
+      margin-top: 6px;
     }
     .footer {
-      background: #091322;
-      padding: 24px 30px;
+      background: #080f1e;
+      padding: 20px 32px;
       text-align: center;
       font-size: 12px;
       color: #64748b;
       border-top: 1px solid #1e293b;
-    }
-    .warning {
-      color: #f59e0b;
-      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">Goa<span>Ride</span></div>
-      <div class="badge">${badgeText}</div>
+      <div class="brand">Goa<span>Ride</span></div>
+      <div class="badge">EMAIL VERIFICATION CODE</div>
     </div>
-    
+
     <div class="body">
-      <div class="greeting">Hello ${name || 'Rider'},</div>
-      <p>Thank you for signing up with <strong>GoaRide</strong> — Goa's premier self-drive vehicle rental platform.</p>
-      
-      <p>Please click the button below to verify your email address and activate your account.</p>
-      
-      <div class="btn-container">
-        <a href="${verificationUrl}" class="btn" target="_blank">Verify Email Address</a>
+      <div class="greeting">Hi ${name || 'Rider'},</div>
+      <p>Here is your 6-digit email verification code to activate your GoaRide account:</p>
+
+      <div class="otp-card">
+        <div style="font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px;">YOUR 6-DIGIT VERIFICATION CODE</div>
+        <div class="otp-code">${otp}</div>
+        <div class="timer-badge">⏳ Valid for 5 minutes only</div>
       </div>
 
-      <p class="warning">⚠️ Note: This verification link will expire in 30 minutes for security reasons.</p>
-      
-      <p>If the button above does not work, copy and paste the following link into your web browser:</p>
-      <div class="url-box">${verificationUrl}</div>
+      <p style="font-size: 13px; color: #94a3b8;">
+        Enter this 6-digit code on the GoaRide verification screen to complete your registration.
+      </p>
 
-      <p style="margin-top: 30px; font-size: 13px; color: #94a3b8;">If you did not register for a GoaRide account, please ignore this email.</p>
+      <p style="margin-top: 24px; font-size: 12px; color: #64748b;">
+        🔒 Security Warning: If you did not request this verification code, please safely ignore this email. Never share your verification code with anyone.
+      </p>
     </div>
 
     <div class="footer">
-      &copy; ${new Date().getFullYear()} GoaRide Vehicle Rentals Pvt. Ltd. • Panaji, Goa<br>
-      Automated Security Verification Email • Do Not Reply
+      &copy; ${new Date().getFullYear()} GoaRide Rentals Pvt. Ltd. • Panaji, Goa<br>
+      Automated Security Email • Do Not Reply
     </div>
   </div>
 </body>
@@ -172,7 +171,6 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
   let isEthereal = false;
 
   if (smtpUser && smtpPass) {
-    // Configured real SMTP Transporter (e.g. Gmail / Outlook / Custom SMTP)
     transporter = nodemailer.createTransport({
       service: smtpHost.includes('gmail') ? 'gmail' : undefined,
       host: smtpHost,
@@ -187,7 +185,6 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
       },
     });
   } else {
-    // Auto Ethereal SMTP Test Transporter (if .env keys are not provided)
     try {
       const testAccount = await nodemailer.createTestAccount();
       transporter = nodemailer.createTransport({
@@ -201,39 +198,39 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
       });
       isEthereal = true;
     } catch (e) {
-      console.warn('Ethereal test account generation skipped:', e.message);
+      console.warn('Ethereal test account skipped:', e.message);
     }
   }
 
   if (!transporter) {
-    return { verificationUrl, sent: false, reason: 'SMTP not configured in server/.env' };
+    return { sent: false, maskedEmail: maskEmail(email) };
   }
 
   try {
-    const mailOptions = {
+    const info = await transporter.sendMail({
       from: fromEmail,
       to: email,
       subject,
       html: htmlContent,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
     const etherealPreviewUrl = isEthereal ? nodemailer.getTestMessageUrl(info) : null;
-
     if (etherealPreviewUrl) {
-      console.log(`📫 Ethereal Test Email Preview URL: ${etherealPreviewUrl}`);
+      console.log(`📫 Ethereal Test Email Preview: ${etherealPreviewUrl}`);
     } else {
-      console.log(`✅ Real Verification Email delivered to ${email} (MessageID: ${info.messageId})`);
+      console.log(`✅ 6-Digit OTP Email delivered to ${email} (MessageID: ${info.messageId})`);
     }
 
     return {
-      verificationUrl,
       sent: true,
-      info,
+      maskedEmail: maskEmail(email),
       etherealPreviewUrl,
     };
   } catch (error) {
-    console.error(`❌ Email delivery attempt to ${email} failed:`, error.message);
-    return { verificationUrl, sent: false, error: error.message };
+    console.error(`❌ OTP Email delivery attempt to ${email} failed:`, error.message);
+    return { sent: false, maskedEmail: maskEmail(email), error: error.message };
   }
 };
+
+// Legacy compatibility helper
+export const sendVerificationEmail = sendOtpEmail;
