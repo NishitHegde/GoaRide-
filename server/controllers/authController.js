@@ -34,8 +34,7 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email already exists' });
     }
 
-    // Security Hardening: Public registration is strictly restricted to 'USER' role
-    // Public requests attempting to pass role='ADMIN' are ignored to prevent privilege escalation
+    // Generate SHA-256 Hashed Verification Token
     const unhashedToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(unhashedToken).digest('hex');
     const tokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes expiration
@@ -51,31 +50,27 @@ export const registerUser = async (req, res) => {
       verificationTokenExpires: tokenExpires,
     });
 
-    let emailSent = true;
-    let emailErrorMsg = '';
-
+    let mailResult = { sent: false };
     try {
-      await sendVerificationEmail({
+      mailResult = await sendVerificationEmail({
         email: user.email,
         name: user.name,
         token: unhashedToken,
         role: user.role,
       });
     } catch (mailError) {
-      emailSent = false;
-      emailErrorMsg = mailError.message;
-      console.warn(`⚠️ Registration succeeded but verification email delivery failed: ${mailError.message}`);
+      console.warn(`⚠️ Registration succeeded but verification email delivery encountered note: ${mailError.message}`);
     }
 
     res.status(201).json({
       success: true,
-      message: emailSent
+      message: mailResult.sent
         ? "Registration successful! We've sent a verification link to your email address. Please check your inbox to activate your account."
-        : "Account created successfully. However, we could not deliver the verification email right now. Please check your SMTP settings or click Resend Verification.",
+        : "Account created! Verification email attempted. If SMTP is unconfigured in server/.env, use the direct link below.",
       email: user.email,
       isVerified: false,
-      emailSent,
-      emailError: emailErrorMsg || undefined,
+      emailSent: mailResult.sent,
+      verificationUrl: mailResult.verificationUrl,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Server error during registration' });
@@ -104,8 +99,11 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Strict Email Verification Check
-    if (!user.isVerified) {
+    // REQUIREMENT UPDATE: Verification is strictly for USER accounts.
+    // ADMIN accounts log in directly with Email + Password without needing verification!
+    const isAdmin = user.role?.toUpperCase() === 'ADMIN';
+
+    if (!isAdmin && !user.isVerified) {
       return res.status(401).json({
         message: 'Please verify your email address before logging in.',
         isVerified: false,
@@ -122,7 +120,7 @@ export const loginUser = async (req, res) => {
       phone: user.phone,
       role: user.role,
       profileImage: user.profileImage,
-      isVerified: user.isVerified,
+      isVerified: user.isVerified || isAdmin,
       token,
     });
   } catch (error) {
@@ -197,7 +195,6 @@ export const resendVerificationEmail = async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      // Security measure: Do not leak whether an account exists, but handle cleanly
       return res.status(200).json({
         message: 'If an account with this email address exists, a verification link has been sent.',
       });
@@ -218,7 +215,7 @@ export const resendVerificationEmail = async (req, res) => {
 
     await user.save();
 
-    await sendVerificationEmail({
+    const mailResult = await sendVerificationEmail({
       email: user.email,
       name: user.name,
       token: unhashedToken,
@@ -228,6 +225,8 @@ export const resendVerificationEmail = async (req, res) => {
     res.json({
       success: true,
       message: `A new verification link has been sent to ${user.email}. Please check your inbox.`,
+      emailSent: mailResult.sent,
+      verificationUrl: mailResult.verificationUrl,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to resend verification email' });

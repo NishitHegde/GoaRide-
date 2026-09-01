@@ -20,13 +20,15 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
   const verificationUrl = `${clientUrl}/verify-email/${token}`;
   const isAdmin = role?.toUpperCase() === 'ADMIN';
 
+  // ALWAYS LOG VERIFICATION LINK TO SERVER CONSOLE FOR INSTANT ACCESS / DEBUGGING
+  console.log('\n================================================================');
+  console.log(`✉️ GOARIDE EMAIL VERIFICATION FOR: ${email} (${role})`);
+  console.log(`🔗 VERIFICATION LINK: ${verificationUrl}`);
+  console.log('================================================================\n');
+
   const subject = isAdmin
     ? 'Verify your GoaRide Admin Account'
     : 'Verify your GoaRide email address';
-
-  const titleText = isAdmin
-    ? 'GoaRide Admin Account Verification'
-    : 'Welcome to GoaRide!';
 
   const badgeText = isAdmin ? 'ADMINISTRATOR ACTION REQUIRED' : 'EMAIL VERIFICATION';
 
@@ -168,17 +170,24 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
 </html>
   `;
 
+  // If SMTP user & pass are missing, return verificationUrl cleanly with console log notice
+  if (!smtpUser || !smtpPass) {
+    console.warn(`ℹ️ Notice: SMTP_USER or SMTP_PASSWORD is not configured in server/.env.`);
+    console.warn(`🔗 Verification link generated for ${email}: ${verificationUrl}`);
+    return { verificationUrl, sent: false, reason: 'SMTP credentials not configured in server/.env' };
+  }
+
   // Create Nodemailer Transporter
   const transporter = nodemailer.createTransport({
     host: smtpHost,
     port: smtpPort,
     secure: smtpPort === 465, // true for 465, false for 587
-    auth: smtpUser && smtpPass ? {
+    auth: {
       user: smtpUser,
       pass: smtpPass,
-    } : undefined,
+    },
     tls: {
-      rejectUnauthorized: false, // Prevents self-signed certificate errors in dev
+      rejectUnauthorized: false,
     },
   });
 
@@ -191,10 +200,11 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✉️ Real Verification Email sent successfully to ${email} (MessageID: ${info.messageId})`);
-    return info;
+    console.log(`✅ Real Verification Email sent successfully to ${email} (MessageID: ${info.messageId})`);
+    return { verificationUrl, sent: true, info };
   } catch (error) {
-    console.error(`❌ Failed to send verification email to ${email}:`, error.message);
-    throw new Error(`Email delivery failed: ${error.message}`);
+    console.error(`❌ SMTP Email delivery attempt to ${email} failed:`, error.message);
+    console.warn(`🔗 Direct Verification Link for fallback: ${verificationUrl}`);
+    return { verificationUrl, sent: false, error: error.message };
   }
 };

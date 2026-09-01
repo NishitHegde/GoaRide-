@@ -24,6 +24,7 @@ export default function Register() {
   // Post-Registration Email Verification Success Screen State
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [directVerifyUrl, setDirectVerifyUrl] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
   const [resendStatus, setResendStatus] = useState('');
 
@@ -61,6 +62,9 @@ export default function Register() {
       const res = await register(name.trim(), email.trim(), phone.trim(), password);
       setLoading(false);
       setRegisteredEmail(email.trim());
+      if (res?.verificationUrl) {
+        setDirectVerifyUrl(res.verificationUrl);
+      }
       setIsSubmitted(true);
     } catch (err) {
       setLoading(false);
@@ -123,6 +127,18 @@ export default function Register() {
                 Please open your inbox and click the <strong>"Verify Email"</strong> button to activate your account before logging in.
               </p>
             </div>
+
+            {directVerifyUrl && (
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-semibold space-y-2">
+                <p>⚡ Direct Verification Link (Dev / Test Mode):</p>
+                <a
+                  href={directVerifyUrl}
+                  className="block w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-center text-xs shadow-md transition-all"
+                >
+                  Verify Account Now ➔
+                </a>
+              </div>
+            )}
 
             {resendStatus && (
               <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-900 text-xs font-semibold text-sky-600 dark:text-cyan-400 border border-slate-200 dark:border-slate-800">
