@@ -55,12 +55,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, phone, password, role = 'USER') => {
+  const register = async (name, email, phone, password) => {
     try {
-      const { data } = await API.post('/auth/register', { name, email, phone, password, role });
-      setUser(data);
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      showToast(`Welcome to GoaRide, ${data.name}!`, 'success');
+      const { data } = await API.post('/auth/register', { name, email, phone, password });
+      showToast(data.message || 'Registration successful! Check your inbox for the verification email.', 'info');
       return data;
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed. Please check form details.';

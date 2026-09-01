@@ -1,36 +1,26 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
+import API from '../services/api';
+import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const handleQuickLogin = async (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    try {
-      setLoading(true);
-      setError('');
-      const user = await login(demoEmail, demoPassword);
-      setLoading(false);
-      if (user?.role === 'ADMIN' || demoEmail.includes('admin')) {
-        navigate('/admin');
-      } else {
-        navigate('/bookings');
-      }
-    } catch (err) {
-      setLoading(false);
-      setError('Login failed. Check server status.');
-    }
-  };
+  
+  // Unverified Account Resend State
+  const [isUnverified, setIsUnverified] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendStatus, setResendStatus] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,8 +32,12 @@ export default function Login() {
     try {
       setLoading(true);
       setError('');
+      setIsUnverified(false);
+      setResendStatus('');
+
       const user = await login(email.trim(), password);
       setLoading(false);
+
       if (user?.role === 'ADMIN' || email.trim().toLowerCase().includes('admin')) {
         navigate('/admin');
       } else {
@@ -52,12 +46,35 @@ export default function Login() {
     } catch (err) {
       setLoading(false);
       console.error('Login error:', err);
-      const errMsg =
-        err.response?.data?.message ||
-        (err.message === 'Network Error'
-          ? 'Cannot connect to backend server. Make sure backend is running.'
-          : 'Invalid email or password.');
+
+      const errData = err.response?.data;
+      const errMsg = errData?.message || 'Invalid email or password.';
+
+      if (errData?.isVerified === false || errMsg.toLowerCase().includes('verify')) {
+        setIsUnverified(true);
+        setUnverifiedEmail(errData?.email || email.trim());
+      }
+
       setError(errMsg);
+    }
+  };
+
+  const handleResendFromLogin = async () => {
+    const targetEmail = unverifiedEmail || email.trim();
+    if (!targetEmail) return;
+
+    try {
+      setResendLoading(true);
+      setResendStatus('');
+      const { data } = await API.post('/auth/resend-verification', { email: targetEmail });
+      setResendLoading(false);
+      setResendStatus(data.message || 'Verification email sent! Check your inbox.');
+      showToast('Verification email resent successfully!', 'success');
+    } catch (err) {
+      setResendLoading(false);
+      const msg = err.response?.data?.message || 'Failed to resend verification link.';
+      setResendStatus(`Error: ${msg}`);
+      showToast(msg, 'error');
     }
   };
 
@@ -81,9 +98,36 @@ export default function Login() {
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
+          <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+
+            {/* UNVERIFIED ACCOUNT PROMPT & RESEND BUTTON */}
+            {isUnverified && (
+              <div className="pt-2 border-t border-rose-200 dark:border-rose-800/60 space-y-2">
+                <p className="text-[11px] font-medium text-rose-700 dark:text-rose-300">
+                  Your email address (<strong>{unverifiedEmail}</strong>) has not been verified yet.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendFromLogin}
+                  disabled={resendLoading}
+                  className="px-3.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${resendLoading ? 'animate-spin' : ''}`} />
+                  <span>{resendLoading ? 'Sending Email...' : 'Resend Verification Email'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {resendStatus && (
+          <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            <span>{resendStatus}</span>
           </div>
         )}
 

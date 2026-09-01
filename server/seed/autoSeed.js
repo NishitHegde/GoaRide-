@@ -490,6 +490,7 @@ export const autoSeedIfEmpty = async () => {
       phone: '+91 98765 43210',
       password: process.env.ADMIN_PASSWORD || 'admin123',
       role: 'ADMIN',
+      isVerified: true,
       profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
     });
 
@@ -499,6 +500,7 @@ export const autoSeedIfEmpty = async () => {
       phone: '+91 91234 56789',
       password: 'user123',
       role: 'USER',
+      isVerified: true,
       profileImage: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300',
     });
 

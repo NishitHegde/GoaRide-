@@ -8,14 +8,18 @@ export const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(' ')[1];
       const secret = process.env.JWT_SECRET || 'goaride_jwt_secret_key_2026_super_secure';
-      
+
       const decoded = jwt.verify(token, secret);
       req.user = await User.findById(decoded.id).select('-password');
-      
+
       if (!req.user) {
         return res.status(401).json({ message: 'Not authorized, user account no longer exists' });
       }
-      
+
+      if (!req.user.isVerified) {
+        return res.status(401).json({ message: 'Not authorized, account email address is not verified' });
+      }
+
       return next();
     } catch (error) {
       console.error(`Auth Middleware Error: ${error.message}`);
@@ -29,9 +33,17 @@ export const protect = async (req, res, next) => {
 };
 
 export const admin = (req, res, next) => {
-  if (req.user && (req.user.role?.toUpperCase() === 'ADMIN' || (req.user.email && req.user.email.toLowerCase().includes('admin')))) {
-    next();
-  } else {
-    res.status(403).json({ message: 'Access denied. Administrative privileges required.' });
+  if (!req.user) {
+    return res.status(401).json({ message: 'Not authorized, login required' });
   }
+
+  if (!req.user.isVerified) {
+    return res.status(403).json({ message: 'Access denied. Administrator email address is not verified.' });
+  }
+
+  if (req.user.role?.toUpperCase() === 'ADMIN') {
+    return next();
+  }
+
+  return res.status(403).json({ message: 'Access denied. Administrative privileges required.' });
 };

@@ -17,6 +17,7 @@ import Tracking from './pages/Tracking';
 import AiAssistant from './pages/AiAssistant';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 import AdminDashboard from './pages/AdminDashboard';
 
 function ScrollToTop() {
@@ -49,14 +50,17 @@ export default function App() {
             <Route path="/ai-assistant" element={<AiAssistant />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
             {/* User Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/bookings" element={<Bookings />} />
             </Route>
 
-            {/* Direct Admin Route */}
-            <Route path="/admin" element={<AdminDashboard />} />
+            {/* Protected Admin Route */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
 
           </Routes>
         </main>
