@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 /**
- * Sends a real verification email to a newly registered User or Admin.
+ * Sends a real verification email to a newly registered User.
  * 
  * @param {Object} options
  * @param {string} options.email - Recipient email address
@@ -20,9 +20,9 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
   const verificationUrl = `${clientUrl}/verify-email/${token}`;
   const isAdmin = role?.toUpperCase() === 'ADMIN';
 
-  // ALWAYS LOG VERIFICATION LINK TO SERVER CONSOLE FOR INSTANT ACCESS / DEBUGGING
+  // ALWAYS LOG VERIFICATION LINK TO SERVER TERMINAL CONSOLE
   console.log('\n================================================================');
-  console.log(`✉️ GOARIDE EMAIL VERIFICATION FOR: ${email} (${role})`);
+  console.log(`✉️ GOARIDE EMAIL VERIFICATION FOR: ${email}`);
   console.log(`🔗 VERIFICATION LINK: ${verificationUrl}`);
   console.log('================================================================\n');
 
@@ -145,9 +145,7 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
       <div class="greeting">Hello ${name || 'Rider'},</div>
       <p>Thank you for signing up with <strong>GoaRide</strong> — Goa's premier self-drive vehicle rental platform.</p>
       
-      <p>${isAdmin 
-        ? 'An administrator account registration was requested for this email address. Please verify your email to unlock access to the GoaRide Admin Dashboard.' 
-        : 'Please click the button below to verify your email address and activate your account.'}</p>
+      <p>Please click the button below to verify your email address and activate your account.</p>
       
       <div class="btn-container">
         <a href="${verificationUrl}" class="btn" target="_blank">Verify Email Address</a>
@@ -170,26 +168,46 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
 </html>
   `;
 
-  // If SMTP user & pass are missing, return verificationUrl cleanly with console log notice
-  if (!smtpUser || !smtpPass) {
-    console.warn(`ℹ️ Notice: SMTP_USER or SMTP_PASSWORD is not configured in server/.env.`);
-    console.warn(`🔗 Verification link generated for ${email}: ${verificationUrl}`);
-    return { verificationUrl, sent: false, reason: 'SMTP credentials not configured in server/.env' };
+  let transporter;
+  let isEthereal = false;
+
+  if (smtpUser && smtpPass) {
+    // Configured real SMTP Transporter (e.g. Gmail / Outlook / Custom SMTP)
+    transporter = nodemailer.createTransport({
+      service: smtpHost.includes('gmail') ? 'gmail' : undefined,
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  } else {
+    // Auto Ethereal SMTP Test Transporter (if .env keys are not provided)
+    try {
+      const testAccount = await nodemailer.createTestAccount();
+      transporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+      isEthereal = true;
+    } catch (e) {
+      console.warn('Ethereal test account generation skipped:', e.message);
+    }
   }
 
-  // Create Nodemailer Transporter
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465, // true for 465, false for 587
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
+  if (!transporter) {
+    return { verificationUrl, sent: false, reason: 'SMTP not configured in server/.env' };
+  }
 
   try {
     const mailOptions = {
@@ -200,11 +218,22 @@ export const sendVerificationEmail = async ({ email, name, token, role = 'USER' 
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Real Verification Email sent successfully to ${email} (MessageID: ${info.messageId})`);
-    return { verificationUrl, sent: true, info };
+    const etherealPreviewUrl = isEthereal ? nodemailer.getTestMessageUrl(info) : null;
+
+    if (etherealPreviewUrl) {
+      console.log(`📫 Ethereal Test Email Preview URL: ${etherealPreviewUrl}`);
+    } else {
+      console.log(`✅ Real Verification Email delivered to ${email} (MessageID: ${info.messageId})`);
+    }
+
+    return {
+      verificationUrl,
+      sent: true,
+      info,
+      etherealPreviewUrl,
+    };
   } catch (error) {
-    console.error(`❌ SMTP Email delivery attempt to ${email} failed:`, error.message);
-    console.warn(`🔗 Direct Verification Link for fallback: ${verificationUrl}`);
+    console.error(`❌ Email delivery attempt to ${email} failed:`, error.message);
     return { verificationUrl, sent: false, error: error.message };
   }
 };

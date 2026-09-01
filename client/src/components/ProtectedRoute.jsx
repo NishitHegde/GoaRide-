@@ -9,7 +9,9 @@ export const ProtectedRoute = () => {
     return <div className="min-h-screen flex items-center justify-center text-cyan-400 font-bold">Loading GoaRide...</div>;
   }
 
-  if (!user || !user.isVerified) {
+  // Regular user routes require verification (admins bypass)
+  const isAdmin = user?.role === 'ADMIN';
+  if (!user || (!isAdmin && !user.isVerified)) {
     return <Navigate to="/login" replace />;
   }
 
@@ -23,7 +25,8 @@ export const AdminRoute = () => {
     return <div className="min-h-screen flex items-center justify-center text-amber-500 font-extrabold text-xs">Loading Admin Console...</div>;
   }
 
-  if (!user || !user.isVerified || user.role !== 'ADMIN') {
+  // Admin route requires role === 'ADMIN' (email verification not required for admin)
+  if (!user || user.role !== 'ADMIN') {
     return <Navigate to="/login" replace />;
   }
 

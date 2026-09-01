@@ -16,7 +16,10 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user account no longer exists' });
       }
 
-      if (!req.user.isVerified) {
+      // ADMIN accounts do not require email verification
+      const isAdmin = req.user.role?.toUpperCase() === 'ADMIN';
+
+      if (!isAdmin && !req.user.isVerified) {
         return res.status(401).json({ message: 'Not authorized, account email address is not verified' });
       }
 
@@ -37,10 +40,7 @@ export const admin = (req, res, next) => {
     return res.status(401).json({ message: 'Not authorized, login required' });
   }
 
-  if (!req.user.isVerified) {
-    return res.status(403).json({ message: 'Access denied. Administrator email address is not verified.' });
-  }
-
+  // ADMIN accounts bypass email verification check completely
   if (req.user.role?.toUpperCase() === 'ADMIN') {
     return next();
   }
