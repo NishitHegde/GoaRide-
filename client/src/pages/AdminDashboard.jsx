@@ -17,13 +17,13 @@ export default function AdminDashboard() {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
-    totalUsers: 48,
-    totalVehicles: 19,
-    totalBookings: 12,
-    pendingBookings: 2,
-    activeBookings: 8,
-    completedBookings: 4,
-    revenue: 45800,
+    totalUsers: 0,
+    totalVehicles: 0,
+    totalBookings: 0,
+    pendingBookings: 0,
+    activeBookings: 0,
+    completedBookings: 0,
+    revenue: 0,
     recentBookings: [],
   });
   const [vehicles, setVehicles] = useState([]);

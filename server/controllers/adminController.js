@@ -16,12 +16,11 @@ export const getAdminStats = async (req, res) => {
     const activeBookings = await Booking.countDocuments({ bookingStatus: { $in: ['CONFIRMED', 'ACTIVE'] } });
     const completedBookings = await Booking.countDocuments({ bookingStatus: 'COMPLETED' });
 
-    // Calculate total revenue excluding CANCELLED bookings
-    const validPaidBookings = await Booking.find({ 
-      paymentStatus: 'PAID',
-      bookingStatus: { $nin: ['CANCELLED', 'CANCELED'] }
+    // Calculate total live revenue from all active non-cancelled bookings
+    const validBookings = await Booking.find({ 
+      bookingStatus: { $nin: ['CANCELLED', 'CANCELED', 'REJECTED'] }
     });
-    const revenue = validPaidBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const revenue = validBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
 
     const recentBookings = await Booking.find({})
       .populate('vehicle')
