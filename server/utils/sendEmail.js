@@ -15,6 +15,11 @@ export const maskEmail = (email) => {
 /**
  * Sends a real 6-digit verification OTP email to a newly registered or logging-in User.
  * 
+ * Supports:
+ * 1. Resend API (set RESEND_API_KEY in server/.env)
+ * 2. Gmail / Outlook / Custom SMTP (set SMTP_USER and SMTP_PASSWORD in server/.env)
+ * 3. Ethereal Test Account & Terminal Console Logging fallback
+ * 
  * @param {Object} options
  * @param {string} options.email - Recipient email address
  * @param {string} options.name - Recipient name
@@ -25,9 +30,10 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
   const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
   const smtpUser = process.env.SMTP_USER || process.env.SMTP_EMAIL;
   const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
+  const resendApiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.EMAIL_FROM || `"GoaRide Verification" <${smtpUser || 'no-reply@goaride.com'}>`;
 
-  // Always log OTP to server terminal console for instant dev access / debugging
+  // ALWAYS LOG OTP TO SERVER TERMINAL CONSOLE FOR INSTANT DEV ACCESS / DEBUGGING
   console.log('\n================================================================');
   console.log(`🔐 GOARIDE EMAIL OTP FOR: ${email}`);
   console.log(`🔑 6-DIGIT VERIFICATION OTP: ${otp}`);
@@ -35,7 +41,6 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
   console.log('================================================================\n');
 
   const subject = 'Verify your email address';
-  const formattedOtp = otp.toString().split('').join(' ');
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -100,7 +105,6 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
     }
     .otp-card {
       background: #091322;
-      border: 2px border-amber-500/30;
       border-radius: 18px;
       padding: 24px;
       text-align: center;
@@ -167,12 +171,42 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 </html>
   `;
 
+  // OPTION 1: Resend HTTP API (if RESEND_API_KEY is configured in server/.env)
+  if (resendApiKey) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify({
+          from: process.env.EMAIL_FROM || 'GoaRide <onboarding@resend.dev>',
+          to: [email],
+          subject,
+          html: htmlContent,
+        }),
+      });
+
+      const resData = await response.json();
+      if (response.ok) {
+        console.log(`✅ Real OTP Email delivered via Resend API to ${email} (ID: ${resData.id})`);
+        return { sent: true, maskedEmail: maskEmail(email), id: resData.id };
+      } else {
+        console.warn(`⚠️ Resend API returned error:`, resData);
+      }
+    } catch (resendErr) {
+      console.warn(`⚠️ Resend API fetch failed: ${resendErr.message}`);
+    }
+  }
+
+  // OPTION 2: Nodemailer Transporter (Gmail / Outlook / Custom SMTP)
   let transporter;
   let isEthereal = false;
 
   if (smtpUser && smtpPass) {
     transporter = nodemailer.createTransport({
-      service: smtpHost.includes('gmail') ? 'gmail' : undefined,
+      service: (smtpHost.includes('gmail') || smtpUser.includes('gmail')) ? 'gmail' : undefined,
       host: smtpHost,
       port: smtpPort,
       secure: smtpPort === 465,
@@ -216,7 +250,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
     const etherealPreviewUrl = isEthereal ? nodemailer.getTestMessageUrl(info) : null;
     if (etherealPreviewUrl) {
-      console.log(`📫 Ethereal Test Email Preview: ${etherealPreviewUrl}`);
+      console.log(`📫 Ethereal Test Email Preview URL: ${etherealPreviewUrl}`);
     } else {
       console.log(`✅ 6-Digit OTP Email delivered to ${email} (MessageID: ${info.messageId})`);
     }
