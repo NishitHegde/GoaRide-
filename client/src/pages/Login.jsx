@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, ShieldCheck, Eye, EyeOff, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
 import OtpVerificationCard from '../components/OtpVerificationCard';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(location.state?.prefillEmail || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [infoMessage, setInfoMessage] = useState(location.state?.infoMessage || '');
 
   // Unverified User OTP Card State
   const [isUnverified, setIsUnverified] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
+
+  useEffect(() => {
+    if (location.state?.prefillEmail) {
+      setEmail(location.state.prefillEmail);
+    }
+    if (location.state?.infoMessage) {
+      setInfoMessage(location.state.infoMessage);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,6 +40,7 @@ export default function Login() {
     try {
       setLoading(true);
       setError('');
+      setInfoMessage('');
       setIsUnverified(false);
 
       const user = await login(email.trim(), password);
@@ -84,6 +96,13 @@ export default function Login() {
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Login to GoaRide</h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Access your vehicle rentals, live tracking & trip bot</p>
           </div>
+
+          {infoMessage && (
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span>{infoMessage}</span>
+            </div>
+          )}
 
           {error && (
             <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
