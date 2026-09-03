@@ -16,9 +16,11 @@ export const maskEmail = (email) => {
  * Sends a real 6-digit verification OTP email to a newly registered or logging-in User.
  * 
  * Supports:
- * 1. Resend API (set RESEND_API_KEY in server/.env)
- * 2. Gmail / Outlook / Custom SMTP (set SMTP_USER and SMTP_PASSWORD in server/.env)
- * 3. Ethereal Test Account & Terminal Console Logging fallback
+ * 1. Resend API (RESEND_API_KEY)
+ * 2. Brevo API (BREVO_API_KEY)
+ * 3. Nodemailer SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD)
+ * 
+ * Safe server logs only (Never logs OTPs, passwords, or API keys).
  * 
  * @param {Object} options
  * @param {string} options.email - Recipient email address
@@ -31,14 +33,9 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
   const smtpUser = process.env.SMTP_USER || process.env.SMTP_EMAIL;
   const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
   const resendApiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.EMAIL_FROM || `"GoaRide Verification" <${smtpUser || 'no-reply@goaride.com'}>`;
+  const brevoApiKey = process.env.BREVO_API_KEY;
 
-  // ALWAYS LOG OTP TO SERVER TERMINAL CONSOLE FOR INSTANT DEV ACCESS / DEBUGGING
-  console.log('\n================================================================');
-  console.log(`🔐 GOARIDE EMAIL OTP FOR: ${email}`);
-  console.log(`🔑 6-DIGIT VERIFICATION OTP: ${otp}`);
-  console.log('⏰ EXPIRES IN: 5 MINUTES');
-  console.log('================================================================\n');
+  console.log(`[Email Service] Attempting to send verification OTP email to: ${email}`);
 
   const subject = 'Verify your email address';
 
@@ -171,8 +168,10 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 </html>
   `;
 
-  // OPTION 1: Resend HTTP API (if RESEND_API_KEY is configured in server/.env)
+  // PROVIDER OPTION 1: Resend HTTP API (if RESEND_API_KEY is configured in server/.env)
   if (resendApiKey) {
+    console.log('[Email Service] Using provider: Resend API');
+    const fromAddress = process.env.EMAIL_FROM || 'GoaRide <onboarding@resend.dev>';
     try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -181,7 +180,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
           'Authorization': `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'GoaRide <onboarding@resend.dev>',
+          from: fromAddress,
           to: [email],
           subject,
           html: htmlContent,
@@ -190,22 +189,59 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
       const resData = await response.json();
       if (response.ok) {
-        console.log(`✅ Real OTP Email delivered via Resend API to ${email} (ID: ${resData.id})`);
-        return { sent: true, maskedEmail: maskEmail(email), id: resData.id };
+        console.log(`[Email Service Success] Delivered via Resend API to ${email} (Message ID: ${resData.id})`);
+        return { sent: true, maskedEmail: maskEmail(email), messageId: resData.id };
       } else {
-        console.warn(`⚠️ Resend API returned error:`, resData);
+        const errorMsg = resData.message || JSON.stringify(resData);
+        console.error(`[Email Service Failure] Resend API error: ${errorMsg}`);
+        throw new Error(`Resend API error: ${errorMsg}`);
       }
     } catch (resendErr) {
-      console.warn(`⚠️ Resend API fetch failed: ${resendErr.message}`);
+      console.error(`[Email Service Failure] Resend API delivery failed: ${resendErr.message}`);
+      throw resendErr;
     }
   }
 
-  // OPTION 2: Nodemailer Transporter (Gmail / Outlook / Custom SMTP)
-  let transporter;
-  let isEthereal = false;
+  // PROVIDER OPTION 2: Brevo REST API (if BREVO_API_KEY is configured in server/.env)
+  if (brevoApiKey) {
+    console.log('[Email Service] Using provider: Brevo API');
+    const fromAddress = process.env.EMAIL_FROM || 'no-reply@goaride.com';
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': brevoApiKey,
+        },
+        body: JSON.stringify({
+          sender: { name: 'GoaRide Verification', email: fromAddress },
+          to: [{ email, name: name || 'Rider' }],
+          subject,
+          htmlContent,
+        }),
+      });
 
+      const brevoData = await response.json();
+      if (response.ok) {
+        console.log(`[Email Service Success] Delivered via Brevo API to ${email} (Message ID: ${brevoData.messageId})`);
+        return { sent: true, maskedEmail: maskEmail(email), messageId: brevoData.messageId };
+      } else {
+        const errorMsg = brevoData.message || JSON.stringify(brevoData);
+        console.error(`[Email Service Failure] Brevo API error: ${errorMsg}`);
+        throw new Error(`Brevo API error: ${errorMsg}`);
+      }
+    } catch (brevoErr) {
+      console.error(`[Email Service Failure] Brevo API delivery failed: ${brevoErr.message}`);
+      throw brevoErr;
+    }
+  }
+
+  // PROVIDER OPTION 3: Nodemailer SMTP (if SMTP_USER & SMTP_PASSWORD exist in server/.env)
   if (smtpUser && smtpPass) {
-    transporter = nodemailer.createTransport({
+    console.log(`[Email Service] Using provider: Nodemailer SMTP (${smtpHost}:${smtpPort})`);
+    const fromEmail = process.env.EMAIL_FROM || `"GoaRide Verification" <${smtpUser}>`;
+
+    const transporter = nodemailer.createTransport({
       service: (smtpHost.includes('gmail') || smtpUser.includes('gmail')) ? 'gmail' : undefined,
       host: smtpHost,
       port: smtpPort,
@@ -218,53 +254,28 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
         rejectUnauthorized: false,
       },
     });
-  } else {
+
     try {
-      const testAccount = await nodemailer.createTestAccount();
-      transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
+      const info = await transporter.sendMail({
+        from: fromEmail,
+        to: email,
+        subject,
+        html: htmlContent,
       });
-      isEthereal = true;
-    } catch (e) {
-      console.warn('Ethereal test account skipped:', e.message);
+
+      console.log(`[Email Service Success] Delivered via SMTP to ${email} (Message ID: ${info.messageId})`);
+      return { sent: true, maskedEmail: maskEmail(email), messageId: info.messageId };
+    } catch (smtpErr) {
+      console.error(`[Email Service Failure] SMTP delivery failed to ${email}: ${smtpErr.message}`);
+      throw new Error(`SMTP delivery failed: ${smtpErr.message}`);
     }
   }
 
-  if (!transporter) {
-    return { sent: false, maskedEmail: maskEmail(email) };
-  }
-
-  try {
-    const info = await transporter.sendMail({
-      from: fromEmail,
-      to: email,
-      subject,
-      html: htmlContent,
-    });
-
-    const etherealPreviewUrl = isEthereal ? nodemailer.getTestMessageUrl(info) : null;
-    if (etherealPreviewUrl) {
-      console.log(`📫 Ethereal Test Email Preview URL: ${etherealPreviewUrl}`);
-    } else {
-      console.log(`✅ 6-Digit OTP Email delivered to ${email} (MessageID: ${info.messageId})`);
-    }
-
-    return {
-      sent: true,
-      maskedEmail: maskEmail(email),
-      etherealPreviewUrl,
-    };
-  } catch (error) {
-    console.error(`❌ OTP Email delivery attempt to ${email} failed:`, error.message);
-    return { sent: false, maskedEmail: maskEmail(email), error: error.message };
-  }
+  // NO PROVIDER CONFIGURED IN SERVER ENVIRONMENT
+  const missingConfigError = 'No production email provider configured. Please set RESEND_API_KEY, BREVO_API_KEY, or SMTP_USER & SMTP_PASSWORD in server/.env';
+  console.error(`[Email Service Error] ${missingConfigError}`);
+  throw new Error(missingConfigError);
 };
 
-// Legacy compatibility helper
+// Legacy compatibility export
 export const sendVerificationEmail = sendOtpEmail;

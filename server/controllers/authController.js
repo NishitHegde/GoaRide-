@@ -39,7 +39,7 @@ export const registerUser = async (req, res) => {
     const otpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
     const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration
 
-    // Create user record with isVerified: false (role strictly forced to 'USER')
+    // Create pending user record (role strictly forced to 'USER')
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
@@ -53,15 +53,23 @@ export const registerUser = async (req, res) => {
       otpLastSentAt: new Date(),
     });
 
-    let mailResult = { sent: false };
+    // ATTEMPT REAL EMAIL DELIVERY
     try {
-      mailResult = await sendOtpEmail({
+      await sendOtpEmail({
         email: user.email,
         name: user.name,
         otp: plainOtp,
       });
     } catch (mailError) {
-      console.warn(`⚠️ Registration succeeded but OTP email delivery notice: ${mailError.message}`);
+      // DO NOT SAY SUCCESS IF EMAIL FAILED!
+      // Roll back user creation so account is not left in an unusable state
+      await User.findByIdAndDelete(user._id);
+      console.error(`[Auth Controller Error] Registration rolled back because OTP email delivery failed: ${mailError.message}`);
+
+      return res.status(500).json({
+        message: 'Unable to send verification email. Please try again later or verify email configuration.',
+        error: mailError.message,
+      });
     }
 
     res.status(201).json({
@@ -207,18 +215,27 @@ export const resendOtp = async (req, res) => {
     const plainOtp = crypto.randomInt(100000, 999999).toString();
     const otpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
 
+    // ATTEMPT EMAIL DELIVERY FIRST
+    try {
+      await sendOtpEmail({
+        email: user.email,
+        name: user.name,
+        otp: plainOtp,
+      });
+    } catch (mailError) {
+      console.error(`[Auth Controller Error] Resend OTP email delivery failed: ${mailError.message}`);
+      return res.status(500).json({
+        message: 'Unable to send verification email. Please try again later.',
+        error: mailError.message,
+      });
+    }
+
     user.otpHash = otpHash;
     user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
     user.otpAttempts = 0;
     user.otpLastSentAt = new Date();
 
     await user.save();
-
-    await sendOtpEmail({
-      email: user.email,
-      name: user.name,
-      otp: plainOtp,
-    });
 
     res.json({
       success: true,
@@ -265,13 +282,18 @@ export const loginUser = async (req, res) => {
 
       if (sendNewOtp) {
         const plainOtp = crypto.randomInt(100000, 999999).toString();
-        user.otpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
-        user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
-        user.otpAttempts = 0;
-        user.otpLastSentAt = new Date();
-        await user.save();
+        const newOtpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
 
-        sendOtpEmail({ email: user.email, name: user.name, otp: plainOtp }).catch(() => {});
+        try {
+          await sendOtpEmail({ email: user.email, name: user.name, otp: plainOtp });
+          user.otpHash = newOtpHash;
+          user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+          user.otpAttempts = 0;
+          user.otpLastSentAt = new Date();
+          await user.save();
+        } catch (mailErr) {
+          console.error(`[Auth Controller Error] Login OTP resend failed: ${mailErr.message}`);
+        }
       }
 
       return res.status(401).json({
