@@ -15,7 +15,7 @@ export const maskEmail = (email) => {
 /**
  * Sends a real 6-digit verification OTP email to a newly registered or logging-in User.
  * 
- * Multi-Provider Waterfall Delivery:
+ * Multi-Provider Waterfall Delivery with Connection Timeouts:
  * 1. Gmail / Nodemailer SMTP (if SMTP_USER & SMTP_PASSWORD exist)
  * 2. Resend API (if RESEND_API_KEY exists)
  * 3. Brevo REST API (if BREVO_API_KEY exists)
@@ -173,7 +173,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
   let lastError = null;
 
-  // PROVIDER CHOICE 1: Gmail / Nodemailer SMTP (Tested & Verified Working)
+  // PROVIDER CHOICE 1: Gmail / Nodemailer SMTP (Fast & Timeout Protected)
   if (smtpUser && smtpPass) {
     console.log(`[Email Service] Attempting delivery via Nodemailer SMTP (${smtpHost}:${smtpPort}) for ${smtpUser}...`);
     const fromEmail = `"GoaRide Verification" <${smtpUser}>`;
@@ -188,6 +188,9 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
           user: smtpUser,
           pass: smtpPass,
         },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000,
         tls: {
           rejectUnauthorized: false,
         },
@@ -208,7 +211,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
     }
   }
 
-  // PROVIDER CHOICE 2: Resend HTTP API (Fallback / Alternative)
+  // PROVIDER CHOICE 2: Resend HTTP API
   if (resendApiKey) {
     console.log('[Email Service] Attempting delivery via Resend API...');
     const fromAddress = process.env.EMAIL_FROM || 'GoaRide <onboarding@resend.dev>';
