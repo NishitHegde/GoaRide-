@@ -24,7 +24,10 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('userInfo', JSON.stringify(freshUser));
               })
               .catch((err) => {
-                console.warn('Background token check note:', err?.message);
+                if (err?.response?.status === 401) {
+                  localStorage.removeItem('userInfo');
+                  setUser(null);
+                }
               });
           } else {
             localStorage.removeItem('userInfo');
@@ -50,7 +53,10 @@ export const AuthProvider = ({ children }) => {
       return data;
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
-      showToast(message, 'error');
+      // Don't show toast for unverified email since the UI renders the OTP card
+      if (!error.response?.data?.isVerified === false) {
+        showToast(message, 'error');
+      }
       throw error;
     }
   };
@@ -79,47 +85,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateProfile = async (updatedData) => {
-    try {
-      const { data } = await API.put(`/users/${user._id}`, updatedData);
-      const newUserData = { ...user, ...data };
-      setUser(newUserData);
-      localStorage.setItem('userInfo', JSON.stringify(newUserData));
-      showToast('Profile updated successfully!', 'success');
-      return newUserData;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to update profile.';
-      showToast(message, 'error');
-      throw error;
-    }
-  };
-
-  const uploadAvatar = async (file) => {
-    try {
-      const formData = new FormData();
-      formData.append('avatarFile', file);
-
-      const { data } = await API.post('/users/upload-avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      const newUserData = { ...user, ...data };
-      setUser(newUserData);
-      localStorage.setItem('userInfo', JSON.stringify(newUserData));
-      showToast('Profile image updated successfully!', 'success');
-      return newUserData;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Failed to upload profile image.';
-      showToast(message, 'error');
-      throw error;
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile, uploadAvatar }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
