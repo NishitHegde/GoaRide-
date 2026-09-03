@@ -78,6 +78,7 @@ export const registerUser = async (req, res) => {
       email: user.email,
       maskedEmail: maskEmail(user.email),
       isVerified: false,
+      otpDevHint: process.env.NODE_ENV !== 'production' ? plainOtp : undefined,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Server error during registration' });
@@ -241,6 +242,7 @@ export const resendOtp = async (req, res) => {
       success: true,
       message: `A new 6-digit verification code has been sent to ${maskEmail(user.email)}.`,
       maskedEmail: maskEmail(user.email),
+      otpDevHint: process.env.NODE_ENV !== 'production' ? plainOtp : undefined,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to resend verification code' });
@@ -295,6 +297,7 @@ export const loginUser = async (req, res) => {
         isVerified: false,
         email: user.email,
         maskedEmail: maskEmail(user.email),
+        otpDevHint: process.env.NODE_ENV !== 'production' ? plainOtp : undefined,
       });
     }
 
