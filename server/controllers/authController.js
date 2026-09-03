@@ -274,26 +274,20 @@ export const loginUser = async (req, res) => {
     const isAdmin = user.role?.toUpperCase() === 'ADMIN';
 
     if (!isAdmin && !user.isVerified) {
-      // Trigger new OTP send if last sent > 60s ago
-      let sendNewOtp = true;
-      if (user.otpLastSentAt && (Date.now() - new Date(user.otpLastSentAt).getTime() < 60 * 1000)) {
-        sendNewOtp = false;
-      }
+      // ALWAYS generate & send fresh 6-digit OTP email on login attempt for unverified accounts
+      const plainOtp = crypto.randomInt(100000, 999999).toString();
+      const newOtpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
 
-      if (sendNewOtp) {
-        const plainOtp = crypto.randomInt(100000, 999999).toString();
-        const newOtpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
+      user.otpHash = newOtpHash;
+      user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      user.otpAttempts = 0;
+      user.otpLastSentAt = new Date();
+      await user.save();
 
-        try {
-          await sendOtpEmail({ email: user.email, name: user.name, otp: plainOtp });
-          user.otpHash = newOtpHash;
-          user.otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
-          user.otpAttempts = 0;
-          user.otpLastSentAt = new Date();
-          await user.save();
-        } catch (mailErr) {
-          console.error(`[Auth Controller Error] Login OTP resend failed: ${mailErr.message}`);
-        }
+      try {
+        await sendOtpEmail({ email: user.email, name: user.name, otp: plainOtp });
+      } catch (mailErr) {
+        console.error(`[Auth Controller Error] Login OTP resend failed: ${mailErr.message}`);
       }
 
       return res.status(401).json({
