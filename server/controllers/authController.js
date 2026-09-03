@@ -9,7 +9,7 @@ const isValidEmail = (email) => {
   return re.test(email);
 };
 
-// @desc Register new user & send 6-digit OTP
+// @desc Register new user (NO EMAIL OTP ON REGISTER - ONLY ON SIGN IN)
 // @route POST /api/auth/register
 export const registerUser = async (req, res) => {
   try {
@@ -34,12 +34,7 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email address already exists' });
     }
 
-    // Cryptographically secure 6-digit OTP generation
-    const plainOtp = crypto.randomInt(100000, 999999).toString();
-    const otpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
-    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiration
-
-    // Create pending user record (role strictly forced to 'USER')
+    // Create user record (isVerified: false so OTP verification happens during sign in)
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
@@ -47,38 +42,16 @@ export const registerUser = async (req, res) => {
       password,
       role: 'USER',
       isVerified: false,
-      otpHash,
-      otpExpiresAt,
-      otpAttempts: 0,
-      otpLastSentAt: new Date(),
     });
 
-    // ATTEMPT REAL EMAIL DELIVERY
-    try {
-      await sendOtpEmail({
-        email: user.email,
-        name: user.name,
-        otp: plainOtp,
-      });
-    } catch (mailError) {
-      // DO NOT SAY SUCCESS IF EMAIL FAILED!
-      // Roll back user creation so account is not left in an unusable state
-      await User.findByIdAndDelete(user._id);
-      console.error(`[Auth Controller Error] Registration rolled back because OTP email delivery failed: ${mailError.message}`);
-
-      return res.status(500).json({
-        message: 'Unable to send verification email. Please try again later or verify email configuration.',
-        error: mailError.message,
-      });
-    }
+    console.log(`[Registration] New account created for ${user.email}. (OTP verification will occur on Sign In)`);
 
     res.status(201).json({
       success: true,
-      message: "We've sent a 6-digit verification code to your email.",
+      message: 'Account created successfully! Please sign in to verify your email address.',
       email: user.email,
       maskedEmail: maskEmail(user.email),
       isVerified: false,
-      otpDevHint: process.env.NODE_ENV !== 'production' ? plainOtp : undefined,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Server error during registration' });
@@ -249,7 +222,7 @@ export const resendOtp = async (req, res) => {
   }
 };
 
-// @desc Auth user & get token (UNTOUCHED FOR ADMIN)
+// @desc Auth user & get token (EMAIL OTP VERIFICATION ON SIGN IN FOR USERS)
 // @route POST /api/auth/login
 export const loginUser = async (req, res) => {
   try {
@@ -276,7 +249,7 @@ export const loginUser = async (req, res) => {
     const isAdmin = user.role?.toUpperCase() === 'ADMIN';
 
     if (!isAdmin && !user.isVerified) {
-      // ALWAYS generate & send fresh 6-digit OTP email on login attempt for unverified accounts
+      // ON SIGN IN: ALWAYS generate & send fresh 6-digit OTP email for unverified user accounts
       const plainOtp = crypto.randomInt(100000, 999999).toString();
       const newOtpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
 
@@ -289,11 +262,11 @@ export const loginUser = async (req, res) => {
       try {
         await sendOtpEmail({ email: user.email, name: user.name, otp: plainOtp });
       } catch (mailErr) {
-        console.error(`[Auth Controller Error] Login OTP resend failed: ${mailErr.message}`);
+        console.error(`[Auth Controller Error] Sign In OTP email delivery failed: ${mailErr.message}`);
       }
 
       return res.status(401).json({
-        message: 'Please verify your email address first.',
+        message: 'Please verify your email address to complete sign in.',
         isVerified: false,
         email: user.email,
         maskedEmail: maskEmail(user.email),
