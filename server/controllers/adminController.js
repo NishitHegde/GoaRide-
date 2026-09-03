@@ -3,7 +3,6 @@ import User from '../models/User.js';
 import Vehicle from '../models/Vehicle.js';
 import Booking from '../models/Booking.js';
 import Review from '../models/Review.js';
-import { sendVerificationEmail } from '../utils/sendEmail.js';
 
 // @desc Get admin dashboard overview stats
 // @route GET /api/admin/dashboard
@@ -60,44 +59,22 @@ export const createAdminAccount = async (req, res) => {
       return res.status(400).json({ message: 'An account with this email address already exists' });
     }
 
-    const unhashedToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto.createHash('sha256').update(unhashedToken).digest('hex');
-    const tokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 mins
-
     const newAdmin = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       phone: phone.trim(),
       password,
       role: 'ADMIN',
-      isVerified: false,
-      verificationToken: hashedToken,
-      verificationTokenExpires: tokenExpires,
+      isVerified: true,
     });
-
-    let emailSent = true;
-    try {
-      await sendVerificationEmail({
-        email: newAdmin.email,
-        name: newAdmin.name,
-        token: unhashedToken,
-        role: 'ADMIN',
-      });
-    } catch (mailErr) {
-      emailSent = false;
-      console.warn(`⚠️ Admin account created but email sending failed: ${mailErr.message}`);
-    }
 
     res.status(201).json({
       success: true,
-      message: emailSent
-        ? `Admin account created for ${newAdmin.email}. A real verification email has been sent.`
-        : `Admin account created for ${newAdmin.email}, but email sending failed. Check SMTP credentials.`,
+      message: `Admin account created for ${newAdmin.email}. Admin can now log in directly.`,
       _id: newAdmin._id,
       email: newAdmin.email,
       role: newAdmin.role,
-      isVerified: false,
-      emailSent,
+      isVerified: true,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Server error creating admin account' });
