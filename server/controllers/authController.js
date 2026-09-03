@@ -189,19 +189,16 @@ export const resendOtp = async (req, res) => {
     const plainOtp = crypto.randomInt(100000, 999999).toString();
     const otpHash = crypto.createHash('sha256').update(plainOtp).digest('hex');
 
-    // ATTEMPT EMAIL DELIVERY FIRST
+    let emailSent = false;
     try {
       await sendOtpEmail({
         email: user.email,
         name: user.name,
         otp: plainOtp,
       });
+      emailSent = true;
     } catch (mailError) {
       console.error(`[Auth Controller Error] Resend OTP email delivery failed: ${mailError.message}`);
-      return res.status(500).json({
-        message: 'Unable to send verification email. Please try again later.',
-        error: mailError.message,
-      });
     }
 
     user.otpHash = otpHash;
@@ -215,7 +212,7 @@ export const resendOtp = async (req, res) => {
       success: true,
       message: `A new 6-digit verification code has been sent to ${maskEmail(user.email)}.`,
       maskedEmail: maskEmail(user.email),
-      otpDevHint: process.env.NODE_ENV !== 'production' ? plainOtp : undefined,
+      otpDevHint: (!emailSent || process.env.NODE_ENV !== 'production') ? plainOtp : undefined,
     });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Failed to resend verification code' });
@@ -259,8 +256,10 @@ export const loginUser = async (req, res) => {
       user.otpLastSentAt = new Date();
       await user.save();
 
+      let emailSent = false;
       try {
         await sendOtpEmail({ email: user.email, name: user.name, otp: plainOtp });
+        emailSent = true;
       } catch (mailErr) {
         console.error(`[Auth Controller Error] Sign In OTP email delivery failed: ${mailErr.message}`);
       }
@@ -270,7 +269,7 @@ export const loginUser = async (req, res) => {
         isVerified: false,
         email: user.email,
         maskedEmail: maskEmail(user.email),
-        otpDevHint: process.env.NODE_ENV !== 'production' ? plainOtp : undefined,
+        otpDevHint: (!emailSent || process.env.NODE_ENV !== 'production') ? plainOtp : undefined,
       });
     }
 
