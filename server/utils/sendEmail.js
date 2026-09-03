@@ -166,7 +166,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
   // PROVIDER 3: High-Speed Pooled Nodemailer SMTP (Gmail / Custom)
   if (smtpUser && smtpPass) {
     console.log(`[Email Service] Fast-dispatching via Pooled Nodemailer SMTP for ${smtpUser}...`);
-    const fromEmail = `"GoaRide Security" <${smtpUser}>`;
+    const fromEmail = process.env.EMAIL_FROM || `"GoaRide Verification" <goaride@gmail.com>`;
 
     try {
       const transporter = getTransporter(smtpHost, smtpPort, smtpUser, smtpPass);
