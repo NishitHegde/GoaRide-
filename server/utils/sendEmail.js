@@ -12,15 +12,41 @@ export const maskEmail = (email) => {
   return `${localPart[0]}${'*'.repeat(Math.min(localPart.length - 2, 4))}${localPart[localPart.length - 1]}@${domain}`;
 };
 
+// Singleton Pooled Transporter Cache for Instant High-Speed Dispatch
+let cachedTransporter = null;
+
+const getTransporter = (smtpHost, smtpPort, smtpUser, smtpPass) => {
+  const isGmail = smtpHost.includes('gmail') || smtpUser.includes('gmail');
+  
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+      rateDelta: 1000,
+      rateLimit: 5,
+      service: isGmail ? 'gmail' : undefined,
+      host: isGmail ? 'smtp.gmail.com' : smtpHost,
+      port: isGmail ? 465 : smtpPort,
+      secure: isGmail ? true : (smtpPort === 465),
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      connectionTimeout: 6000,
+      greetingTimeout: 6000,
+      socketTimeout: 10000,
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  }
+  return cachedTransporter;
+};
+
 /**
  * Sends a real 6-digit verification OTP email to a newly registered or logging-in User.
- * 
- * Multi-Provider Waterfall Delivery with Connection Timeouts:
- * 1. Gmail / Nodemailer SMTP (if SMTP_USER & SMTP_PASSWORD exist)
- * 2. Resend API (if RESEND_API_KEY exists)
- * 3. Brevo REST API (if BREVO_API_KEY exists)
- * 
- * Safe server logs only (Never logs OTPs, passwords, or API keys).
+ * Optimized for high-speed delivery.
  * 
  * @param {Object} options
  * @param {string} options.email - Recipient email address
@@ -31,141 +57,31 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
   const smtpUser = process.env.SMTP_USER || process.env.SMTP_EMAIL;
-  // Clean app password by removing any space characters (e.g. "wsfo tebr urdm gjse" -> "wsfotebrurdmgjse")
   const rawSmtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS || '';
   const smtpPass = rawSmtpPass.replace(/\s+/g, '');
   
   const resendApiKey = process.env.RESEND_API_KEY;
   const brevoApiKey = process.env.BREVO_API_KEY;
 
-  console.log(`[Email Service] Attempting to send verification OTP email to: ${email}`);
+  console.log(`[Email Service] Fast-dispatching OTP email to: ${email}`);
 
-  const subject = 'Verify your email address';
+  const subject = `${otp} is your GoaRide verification code`;
 
+  // Lightweight <2KB HTML template for instant MTA relay processing
   const htmlContent = `
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-      background-color: #080f1e;
-      color: #e2e8f0;
-    }
-    .container {
-      max-width: 520px;
-      margin: 36px auto;
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6);
-    }
-    .header {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-      padding: 32px;
-      text-align: center;
-    }
-    .brand {
-      font-size: 30px;
-      font-weight: 900;
-      color: #ffffff;
-      letter-spacing: -0.5px;
-    }
-    .brand span {
-      color: #f59e0b;
-    }
-    .badge {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 4px 14px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 9999px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: #ffffff;
-    }
-    .body {
-      padding: 36px 32px;
-      color: #cbd5e1;
-      font-size: 15px;
-      line-height: 1.6;
-    }
-    .greeting {
-      font-size: 20px;
-      font-weight: 800;
-      color: #ffffff;
-      margin-bottom: 12px;
-    }
-    .otp-card {
-      background: #091322;
-      border-radius: 18px;
-      padding: 24px;
-      text-align: center;
-      margin: 28px 0;
-      border: 1px solid #334155;
-    }
-    .otp-code {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 36px;
-      font-weight: 900;
-      letter-spacing: 12px;
-      color: #38bdf8;
-      margin: 8px 0;
-      text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-    }
-    .timer-badge {
-      font-size: 12px;
-      font-weight: 700;
-      color: #f59e0b;
-      margin-top: 6px;
-    }
-    .footer {
-      background: #080f1e;
-      padding: 20px 32px;
-      text-align: center;
-      font-size: 12px;
-      color: #64748b;
-      border-top: 1px solid #1e293b;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">Goa<span>Ride</span></div>
-      <div class="badge">EMAIL VERIFICATION CODE</div>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#080f1e;color:#e2e8f0;">
+  <div style="max-width:460px;margin:0 auto;background:#0f172a;border:1px solid #1e293b;border-radius:20px;padding:32px;text-align:center;">
+    <div style="font-size:26px;font-weight:900;color:#ffffff;margin-bottom:6px;">Goa<span style="color:#f59e0b;">Ride</span></div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#38bdf8;margin-bottom:24px;">VERIFICATION CODE</div>
+    <p style="font-size:14px;color:#cbd5e1;margin-bottom:20px;">Hi <strong>${name || 'Rider'}</strong>, use the code below to verify your account:</p>
+    <div style="background:#091322;border:1px solid #334155;border-radius:14px;padding:18px;margin:20px 0;">
+      <div style="font-family:monospace;font-size:36px;font-weight:900;letter-spacing:10px;color:#38bdf8;">${otp}</div>
+      <div style="font-size:11px;color:#f59e0b;margin-top:6px;font-weight:700;">⏳ Valid for 5 minutes</div>
     </div>
-
-    <div class="body">
-      <div class="greeting">Hi ${name || 'Rider'},</div>
-      <p>Here is your 6-digit email verification code to activate your GoaRide account:</p>
-
-      <div class="otp-card">
-        <div style="font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px;">YOUR 6-DIGIT VERIFICATION CODE</div>
-        <div class="otp-code">${otp}</div>
-        <div class="timer-badge">⏳ Valid for 5 minutes only</div>
-      </div>
-
-      <p style="font-size: 13px; color: #94a3b8;">
-        Enter this 6-digit code on the GoaRide verification screen to complete your registration.
-      </p>
-
-      <p style="margin-top: 24px; font-size: 12px; color: #64748b;">
-        🔒 Security Warning: If you did not request this verification code, please safely ignore this email. Never share your verification code with anyone.
-      </p>
-    </div>
-
-    <div class="footer">
-      &copy; ${new Date().getFullYear()} GoaRide Rentals Pvt. Ltd. • Panaji, Goa<br>
-      Automated Security Email • Do Not Reply
-    </div>
+    <p style="font-size:12px;color:#64748b;margin-top:24px;">If you didn't request this code, please ignore this email.</p>
   </div>
 </body>
 </html>
@@ -173,47 +89,9 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
   let lastError = null;
 
-  // PROVIDER CHOICE 1: Gmail / Nodemailer SMTP (Fast & Timeout Protected)
-  if (smtpUser && smtpPass) {
-    console.log(`[Email Service] Attempting delivery via Nodemailer SMTP (${smtpHost}:${smtpPort}) for ${smtpUser}...`);
-    const fromEmail = `"GoaRide Verification" <${smtpUser}>`;
-
-    try {
-      const transporter = nodemailer.createTransport({
-        service: (smtpHost.includes('gmail') || smtpUser.includes('gmail')) ? 'gmail' : undefined,
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 8000,
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-
-      const info = await transporter.sendMail({
-        from: fromEmail,
-        to: email,
-        subject,
-        html: htmlContent,
-      });
-
-      console.log(`[Email Service Success] Delivered via SMTP to ${email} (Message ID: ${info.messageId})`);
-      return { sent: true, maskedEmail: maskEmail(email), messageId: info.messageId };
-    } catch (smtpErr) {
-      console.warn(`[Email Service Warning] SMTP delivery failed to ${email}: ${smtpErr.message}`);
-      lastError = smtpErr;
-    }
-  }
-
-  // PROVIDER CHOICE 2: Resend HTTP API
+  // FAST OPTION 1: Resend HTTP API (if RESEND_API_KEY is configured in server/.env)
   if (resendApiKey) {
-    console.log('[Email Service] Attempting delivery via Resend API...');
+    console.log('[Email Service] Using Resend HTTP REST API for fast dispatch...');
     const fromAddress = process.env.EMAIL_FROM || 'GoaRide <onboarding@resend.dev>';
     try {
       const response = await fetch('https://api.resend.com/emails', {
@@ -232,7 +110,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
       const resData = await response.json();
       if (response.ok) {
-        console.log(`[Email Service Success] Delivered via Resend API to ${email} (Message ID: ${resData.id})`);
+        console.log(`[Email Service Success] Delivered via Resend API to ${email} (ID: ${resData.id})`);
         return { sent: true, maskedEmail: maskEmail(email), messageId: resData.id };
       } else {
         const errorMsg = resData.message || JSON.stringify(resData);
@@ -245,9 +123,9 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
     }
   }
 
-  // PROVIDER CHOICE 3: Brevo REST API
+  // FAST OPTION 2: Brevo REST API (if BREVO_API_KEY is configured in server/.env)
   if (brevoApiKey) {
-    console.log('[Email Service] Attempting delivery via Brevo API...');
+    console.log('[Email Service] Using Brevo REST API for fast dispatch...');
     const fromAddress = process.env.EMAIL_FROM || smtpUser || 'no-reply@goaride.com';
     try {
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -266,7 +144,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
       const brevoData = await response.json();
       if (response.ok) {
-        console.log(`[Email Service Success] Delivered via Brevo API to ${email} (Message ID: ${brevoData.messageId})`);
+        console.log(`[Email Service Success] Delivered via Brevo API to ${email} (ID: ${brevoData.messageId})`);
         return { sent: true, maskedEmail: maskEmail(email), messageId: brevoData.messageId };
       } else {
         const errorMsg = brevoData.message || JSON.stringify(brevoData);
@@ -276,6 +154,30 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
     } catch (brevoErr) {
       console.warn(`[Email Service Warning] Brevo API delivery failed: ${brevoErr.message}`);
       lastError = brevoErr;
+    }
+  }
+
+  // FAST OPTION 3: High-Speed Pooled Nodemailer SMTP (Port 465 SSL/TLS)
+  if (smtpUser && smtpPass) {
+    console.log(`[Email Service] Fast-dispatching via Pooled Nodemailer SMTP for ${smtpUser}...`);
+    const fromEmail = `"GoaRide Verification" <${smtpUser}>`;
+
+    try {
+      const transporter = getTransporter(smtpHost, smtpPort, smtpUser, smtpPass);
+
+      const info = await transporter.sendMail({
+        from: fromEmail,
+        to: email,
+        subject,
+        html: htmlContent,
+      });
+
+      console.log(`[Email Service Success] Delivered via SMTP to ${email} (ID: ${info.messageId})`);
+      return { sent: true, maskedEmail: maskEmail(email), messageId: info.messageId };
+    } catch (smtpErr) {
+      console.warn(`[Email Service Warning] Pooled SMTP delivery failed: ${smtpErr.message}`);
+      cachedTransporter = null; // Reset cache on error
+      lastError = smtpErr;
     }
   }
 
