@@ -46,7 +46,6 @@ const getTransporter = (smtpHost, smtpPort, smtpUser, smtpPass) => {
 
 /**
  * Sends a real 6-digit verification OTP email to a newly registered or logging-in User.
- * Optimized for high-speed delivery.
  * 
  * @param {Object} options
  * @param {string} options.email - Recipient email address
@@ -63,11 +62,18 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
   const resendApiKey = process.env.RESEND_API_KEY;
   const brevoApiKey = process.env.BREVO_API_KEY;
 
-  console.log(`[Email Service] Fast-dispatching OTP email to: ${email}`);
+  // ALWAYS LOG OTP TO SERVER TERMINAL CONSOLE FOR INSTANT ADMIN/DEV ACCESS
+  console.log('\n================================================================');
+  console.log(`🔐 GOARIDE EMAIL OTP FOR: ${email}`);
+  console.log(`🔑 6-DIGIT VERIFICATION OTP: ${otp}`);
+  console.log('⏰ EXPIRES IN: 5 MINUTES');
+  console.log('================================================================\n');
 
-  const subject = `${otp} is your GoaRide verification code`;
+  // Unique subject line to prevent Gmail from grouping new codes into old conversation threads
+  const uniqueRef = Date.now().toString().slice(-4);
+  const subject = `[${otp}] Your GoaRide Verification Code #${uniqueRef}`;
 
-  // Lightweight <2KB HTML template for instant MTA relay processing
+  // Lightweight HTML template for instant delivery
   const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -75,13 +81,13 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 <body style="margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#080f1e;color:#e2e8f0;">
   <div style="max-width:460px;margin:0 auto;background:#0f172a;border:1px solid #1e293b;border-radius:20px;padding:32px;text-align:center;">
     <div style="font-size:26px;font-weight:900;color:#ffffff;margin-bottom:6px;">Goa<span style="color:#f59e0b;">Ride</span></div>
-    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#38bdf8;margin-bottom:24px;">VERIFICATION CODE</div>
-    <p style="font-size:14px;color:#cbd5e1;margin-bottom:20px;">Hi <strong>${name || 'Rider'}</strong>, use the code below to verify your account:</p>
+    <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#38bdf8;margin-bottom:24px;">EMAIL VERIFICATION CODE</div>
+    <p style="font-size:14px;color:#cbd5e1;margin-bottom:20px;">Hi <strong>${name || 'Rider'}</strong>, use the code below to complete your registration:</p>
     <div style="background:#091322;border:1px solid #334155;border-radius:14px;padding:18px;margin:20px 0;">
       <div style="font-family:monospace;font-size:36px;font-weight:900;letter-spacing:10px;color:#38bdf8;">${otp}</div>
       <div style="font-size:11px;color:#f59e0b;margin-top:6px;font-weight:700;">⏳ Valid for 5 minutes</div>
     </div>
-    <p style="font-size:12px;color:#64748b;margin-top:24px;">If you didn't request this code, please ignore this email.</p>
+    <p style="font-size:12px;color:#64748b;margin-top:24px;">If you didn't request this code, please safely ignore this email.</p>
   </div>
 </body>
 </html>
@@ -89,7 +95,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
 
   let lastError = null;
 
-  // FAST OPTION 1: Resend HTTP API (if RESEND_API_KEY is configured in server/.env)
+  // PROVIDER 1: Resend HTTP API (if RESEND_API_KEY exists)
   if (resendApiKey) {
     console.log('[Email Service] Using Resend HTTP REST API for fast dispatch...');
     const fromAddress = process.env.EMAIL_FROM || 'GoaRide <onboarding@resend.dev>';
@@ -123,7 +129,7 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
     }
   }
 
-  // FAST OPTION 2: Brevo REST API (if BREVO_API_KEY is configured in server/.env)
+  // PROVIDER 2: Brevo REST API (if BREVO_API_KEY exists)
   if (brevoApiKey) {
     console.log('[Email Service] Using Brevo REST API for fast dispatch...');
     const fromAddress = process.env.EMAIL_FROM || smtpUser || 'no-reply@goaride.com';
@@ -157,10 +163,10 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
     }
   }
 
-  // FAST OPTION 3: High-Speed Pooled Nodemailer SMTP (Port 465 SSL/TLS)
+  // PROVIDER 3: High-Speed Pooled Nodemailer SMTP (Gmail / Custom)
   if (smtpUser && smtpPass) {
     console.log(`[Email Service] Fast-dispatching via Pooled Nodemailer SMTP for ${smtpUser}...`);
-    const fromEmail = `"GoaRide Verification" <${smtpUser}>`;
+    const fromEmail = `"GoaRide Security" <${smtpUser}>`;
 
     try {
       const transporter = getTransporter(smtpHost, smtpPort, smtpUser, smtpPass);
@@ -170,13 +176,16 @@ export const sendOtpEmail = async ({ email, name, otp }) => {
         to: email,
         subject,
         html: htmlContent,
+        headers: {
+          'X-Entity-Ref-ID': Date.now().toString(),
+        },
       });
 
       console.log(`[Email Service Success] Delivered via SMTP to ${email} (ID: ${info.messageId})`);
       return { sent: true, maskedEmail: maskEmail(email), messageId: info.messageId };
     } catch (smtpErr) {
       console.warn(`[Email Service Warning] Pooled SMTP delivery failed: ${smtpErr.message}`);
-      cachedTransporter = null; // Reset cache on error
+      cachedTransporter = null;
       lastError = smtpErr;
     }
   }
