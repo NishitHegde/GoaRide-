@@ -20,6 +20,7 @@ export default function Login() {
   const [isUnverified, setIsUnverified] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
+  const [otpDevHint, setOtpDevHint] = useState('');
 
   useEffect(() => {
     if (location.state?.prefillEmail) {
@@ -62,6 +63,7 @@ export default function Login() {
         setIsUnverified(true);
         setUnverifiedEmail(errData?.email || email.trim());
         setMaskedEmail(errData?.maskedEmail || email.trim());
+        setOtpDevHint(errData?.otpDevHint || '');
       } else {
         setError(errMsg);
       }
@@ -80,6 +82,7 @@ export default function Login() {
         <OtpVerificationCard
           email={unverifiedEmail}
           maskedEmail={maskedEmail}
+          initialOtpHint={otpDevHint}
           onVerificationSuccess={() => navigate('/bookings')}
           onCancel={() => setIsUnverified(false)}
         />

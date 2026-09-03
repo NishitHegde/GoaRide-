@@ -4,7 +4,7 @@ import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
-export default function OtpVerificationCard({ email, maskedEmail, onVerificationSuccess, onCancel }) {
+export default function OtpVerificationCard({ email, maskedEmail, initialOtpHint, onVerificationSuccess, onCancel }) {
   const { setUser } = useAuth();
   const { showToast } = useToast();
 
@@ -12,6 +12,7 @@ export default function OtpVerificationCard({ email, maskedEmail, onVerification
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [devCode, setDevCode] = useState(initialOtpHint || '');
 
   // 60-second Countdown Timer state
   const [timerSecs, setTimerSecs] = useState(60);
@@ -176,6 +177,11 @@ export default function OtpVerificationCard({ email, maskedEmail, onVerification
         <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold pt-1">
           💡 Check your Spam / Junk or Promotions folder if it doesn't appear in Inbox.
         </p>
+        {devCode && (
+          <div className="mt-2 inline-block px-4 py-1.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-cyan-300 font-bold text-xs border border-sky-500/30">
+            🔑 Verification Code: <span className="font-mono text-sm tracking-widest font-black">{devCode}</span>
+          </div>
+        )}
       </div>
 
       {/* Error Alert */}
