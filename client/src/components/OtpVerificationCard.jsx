@@ -173,6 +173,9 @@ export default function OtpVerificationCard({ email, maskedEmail, onVerification
         <div className="inline-block px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-sky-600 dark:text-cyan-300 font-bold text-xs border border-slate-200 dark:border-slate-800 font-mono">
           {maskedEmail || email}
         </div>
+        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold pt-1">
+          💡 Check your Spam / Junk or Promotions folder if it doesn't appear in Inbox.
+        </p>
       </div>
 
       {/* Error Alert */}
